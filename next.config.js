@@ -7,9 +7,10 @@ const nextConfig = {
     unoptimized: true,
     domains: ['localhost'],
   },
-  output: 'standalone',
+  output: 'export',
   // Enable static exports for Render
   trailingSlash: true,
+  distDir: 'out',
 };
 
 module.exports = nextConfig;
