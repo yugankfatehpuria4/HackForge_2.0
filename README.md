@@ -312,20 +312,26 @@ REDIS_PORT=6379
 ### Quick Start
 Run the deployment preparation script:
 ```bash
-./deploy.sh
+./deploy-render.sh
 ```
 
 ### Deployment Options
 
-#### Option 1: Vercel (Frontend) + Render (Backend) - Recommended
+#### Option 1: Render (Full Stack) - Recommended
+- **Frontend**: Deploy to Render for optimal Next.js performance
+- **Backend**: Deploy to Render for reliable API hosting
+- **Database**: MongoDB Atlas for data storage
+- **Cache**: Redis Cloud for caching
+- **Configuration**: Use the included `render.yaml` for automatic deployment
+
+#### Option 2: Vercel (Frontend) + Render (Backend)
 - **Frontend**: Deploy to Vercel for optimal Next.js performance
 - **Backend**: Deploy to Render for reliable API hosting
 - **Database**: MongoDB Atlas for data storage
 - **Cache**: Redis Cloud for caching
 
-#### Option 2: Render (Both Services)
-- Use the included `render.yaml` for automatic deployment
-- Both frontend and backend on Render platform
+### Detailed Instructions
+📖 **Complete deployment guide**: See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) for step-by-step instructions.
 
 ### Environment Setup
 1. **Frontend (.env.local)**
