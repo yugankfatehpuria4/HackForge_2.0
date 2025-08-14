@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +45,9 @@ interface Pagination {
   total: number;
   pages: number;
 }
+
+// Create properly typed motion components
+const MotionDiv = motion.div as React.ComponentType<HTMLMotionProps<'div'>>;
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -210,7 +213,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
@@ -221,10 +224,10 @@ export default function Dashboard() {
           <p className="text-gray-300">
             Manage and view all your generated projects
           </p>
-        </motion.div>
+        </MotionDiv>
 
         {/* Search and Filters */}
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 space-y-4"
@@ -258,7 +261,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-        </motion.div>
+        </MotionDiv>
 
         {/* Projects Grid */}
         {loading ? (
@@ -266,7 +269,7 @@ export default function Dashboard() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
           </div>
         ) : projects.length === 0 ? (
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center py-16"
@@ -283,12 +286,12 @@ export default function Dashboard() {
                 <a href="/generate">Generate Code</a>
               </Button>
             )}
-          </motion.div>
+          </MotionDiv>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
               {projects.map((project, index) => (
-                <motion.div
+                <MotionDiv
                   key={project._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -374,7 +377,7 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </MotionDiv>
               ))}
             </AnimatePresence>
           </div>
@@ -382,7 +385,7 @@ export default function Dashboard() {
 
         {/* Pagination */}
         {pagination.pages > 1 && (
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex justify-center mt-8"
@@ -408,14 +411,14 @@ export default function Dashboard() {
                 Next
               </Button>
             </div>
-          </motion.div>
+          </MotionDiv>
         )}
       </div>
 
       {/* Code Modal */}
       {showCodeModal && selectedProject && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-slate-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/10"
@@ -447,7 +450,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </MotionDiv>
         </div>
       )}
     </div>
