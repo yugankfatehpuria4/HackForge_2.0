@@ -317,21 +317,23 @@ Run the deployment preparation script:
 
 ### Deployment Options
 
-#### Option 1: Render (Full Stack) - Recommended
+#### Option 1: Vercel (Frontend) + Render (Backend) - Recommended
+- **Frontend**: Deploy to Vercel for optimal Next.js performance
+- **Backend**: Deploy to Render for reliable API hosting
+- **Database**: MongoDB Atlas for data storage
+- **Cache**: Redis Cloud for caching
+- **Configuration**: Use the included `vercel.json` for automatic deployment
+
+#### Option 2: Render (Full Stack)
 - **Frontend**: Deploy to Render for optimal Next.js performance
 - **Backend**: Deploy to Render for reliable API hosting
 - **Database**: MongoDB Atlas for data storage
 - **Cache**: Redis Cloud for caching
 - **Configuration**: Use the included `render.yaml` for automatic deployment
 
-#### Option 2: Vercel (Frontend) + Render (Backend)
-- **Frontend**: Deploy to Vercel for optimal Next.js performance
-- **Backend**: Deploy to Render for reliable API hosting
-- **Database**: MongoDB Atlas for data storage
-- **Cache**: Redis Cloud for caching
-
 ### Detailed Instructions
-📖 **Complete deployment guide**: See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) for step-by-step instructions.
+📖 **Vercel deployment guide**: See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for step-by-step instructions.
+📖 **Render deployment guide**: See [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md) for step-by-step instructions.
 
 ### Environment Setup
 1. **Frontend (.env.local)**
