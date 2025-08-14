@@ -46,8 +46,8 @@ interface Pagination {
   pages: number;
 }
 
-// Create properly typed motion components
-const MotionDiv = motion.div as React.ComponentType<HTMLMotionProps<'div'>>;
+// Create motion component with proper type inference
+const MotionDiv = motion.div;
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
