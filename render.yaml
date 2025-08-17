@@ -22,7 +22,8 @@ services:
     env: node
     plan: starter
     runtime: node20
-    buildCommand: rm -f package-lock.json && npm install && npm run build
+    buildCommand: npm install && npm run build
+    # Alternative: rm -f package-lock.json && npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -37,14 +38,15 @@ services:
     healthCheckPath: /
     autoDeploy: true
     
-  # Backend Service (Node.js/Express)
+  # Backend Service (Node.js/Express)  
   - type: web
     name: hackforge-backend
     env: node
     plan: starter
     runtime: node20
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && rm -f package-lock.json && npm install
     startCommand: cd backend && npm start
+    dockerfilePath: ""  # Disable Docker, use native Node.js build
     envVars:
       - key: NODE_ENV
         value: production
