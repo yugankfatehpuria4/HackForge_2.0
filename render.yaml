@@ -1,137 +1,51 @@
-# HackForge 2.0 - Render Deployment Configuration
-# 
-# SETUP INSTRUCTIONS:
-# 1. Save this file as 'render.yaml' in your repository root
-# 2. Connect your GitHub repo to Render
-# 3. Set the following environment variables manually in Render Dashboard:
-#    - MONGODB_URI: Your MongoDB connection string
-#    - GEMINI_API_KEY: Your Google Gemini API key
-#    - OPENAI_API_KEY: Your OpenAI API key (if used)
-#    - EMAIL_SERVICE: Email service provider (e.g., 'gmail', 'sendgrid')
-#    - EMAIL_USER: Email username/address
-#    - EMAIL_PASS: Email password/API key
-# 4. Auto-generated values (Render will create these):
-#    - JWT_SECRET, ENCRYPTION_KEY, SESSION_SECRET
-# 5. Service references (Render will auto-populate these):
-#    - FRONTEND_URL, CORS_ORIGIN, REDIS_URL
-
 services:
   # Frontend Service (Next.js)
   - type: web
     name: hackforge-frontend
     env: node
     plan: starter
-    runtime: node20
     buildCommand: npm install && npm run build
-    # Alternative: rm -f package-lock.json && npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: hackforge-backend
-          property: host
+        value: https://hackforge-backend.onrender.com
       - key: NEXT_PUBLIC_SITE_URL
         value: https://hackforge-frontend.onrender.com
     healthCheckPath: /
     autoDeploy: true
-    
-  # Backend Service (Node.js/Express)  
+
+  # Backend Service (Node.js/Express)
   - type: web
     name: hackforge-backend
     env: node
     plan: starter
-    runtime: node20
-    buildCommand: cd backend && rm -f package-lock.json && npm install
+    buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
-    dockerfilePath: ""  # Disable Docker, use native Node.js build
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: hackforge-frontend
-          property: host
-      # Database Configuration
+        value: https://hackforge-frontend.onrender.com
       - key: MONGODB_URI
         sync: false
-      - key: DB_NAME
-        value: hackforge_production
-      # API Keys (Set these manually in Render Dashboard)
       - key: GEMINI_API_KEY
         sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      # Authentication & Security
       - key: JWT_SECRET
         generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
-      - key: BCRYPT_SALT_ROUNDS
-        value: 12
       - key: ENCRYPTION_KEY
         generateValue: true
-      # Session Configuration
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: SESSION_MAX_AGE
-        value: 604800000
-      # Redis Configuration
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: hackforge-redis
-          property: connectionString
-      - key: REDIS_TTL
-        value: 3600
-      # Email Configuration (if using email services)
-      - key: EMAIL_SERVICE
         sync: false
-      - key: EMAIL_USER
-        sync: false
-      - key: EMAIL_PASS
-        sync: false
-      # Rate Limiting
-      - key: RATE_LIMIT_WINDOW_MS
-        value: 900000
-      - key: RATE_LIMIT_MAX_REQUESTS
-        value: 100
-      # CORS Configuration
-      - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: hackforge-frontend
-          property: host
-      # File Upload Configuration
-      - key: MAX_FILE_SIZE
-        value: 10485760
-      - key: UPLOAD_PATH
-        value: /tmp/uploads
-      # Logging
-      - key: LOG_LEVEL
-        value: info
     healthCheckPath: /health
     autoDeploy: true
-    
-  # Redis Cache Service
+
+  # Redis Cache Service (Optional)
   - type: redis
     name: hackforge-redis
     plan: starter
     maxmemoryPolicy: allkeys-lru
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: Allow all connections
-
-# Database (if using PostgreSQL instead of MongoDB)
-# - type: pserv
-#   name: hackforge-postgres
-#   env: postgres
-#   plan: starter
-#   databases:
-#     - name: hackforge_db
-#       user: hackforge_user
+    autoDeploy: true
