@@ -48,4 +48,4 @@ services:
     name: hackforge-redis
     plan: starter
     maxmemoryPolicy: allkeys-lru
-    autoDeploy: true
+    autoDeploy: false
