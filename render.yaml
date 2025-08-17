@@ -10,12 +10,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://hackforge-backend.onrender.com
+        fromService:
+          type: web
+          name: hackforge-backend
+          property: host
       - key: NEXT_PUBLIC_SITE_URL
         value: https://hackforge-frontend.onrender.com
     healthCheckPath: /
     autoDeploy: true
-
+    
   # Backend Service (Node.js/Express)
   - type: web
     name: hackforge-backend
@@ -29,7 +32,10 @@ services:
       - key: PORT
         value: 10000
       - key: FRONTEND_URL
-        value: https://hackforge-frontend.onrender.com
+        fromService:
+          type: web
+          name: hackforge-frontend
+          property: host
       - key: MONGODB_URI
         sync: false
       - key: GEMINI_API_KEY
@@ -39,13 +45,27 @@ services:
       - key: ENCRYPTION_KEY
         generateValue: true
       - key: REDIS_URL
-        sync: false
+        fromService:
+          type: redis
+          name: hackforge-redis
+          property: connectionString
     healthCheckPath: /health
     autoDeploy: true
-
-  # Redis Cache Service (Optional)
+    
+  # Redis Cache Service
   - type: redis
     name: hackforge-redis
     plan: starter
     maxmemoryPolicy: allkeys-lru
-    # autoDeploy: false
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all connections
+
+# Database (if using PostgreSQL instead of MongoDB)
+# - type: pserv
+#   name: hackforge-postgres
+#   env: postgres
+#   plan: starter
+#   databases:
+#     - name: hackforge_db
+#       user: hackforge_user
