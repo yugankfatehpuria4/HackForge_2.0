@@ -180,7 +180,7 @@ export default function BlogPage() {
                   Building a Real-Time Chat App with HackForge
                 </h3>
                 <p className="text-gray-300 mb-4 text-sm">
-                  Step-by-step guide to creating a modern real-time chat application using HackForge's AI-powered code generation and WebSocket integration.
+                  Step-by-step guide to creating a modern real-time chat application using HackForge&apos;s AI-powered code generation and WebSocket integration.
                 </p>
                 <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
                   <span className="flex items-center">
@@ -291,7 +291,7 @@ export default function BlogPage() {
                   Community Spotlight: Amazing Projects Built with HackForge
                 </h3>
                 <p className="text-gray-300 mb-4 text-sm">
-                  Discover incredible projects built by the HackForge community, from innovative web apps to game-changing tools that demonstrate the platform's versatility.
+                  Discover incredible projects built by the HackForge community, from innovative web apps to game-changing tools that demonstrate the platform&apos;s versatility.
                 </p>
                 <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
                   <span className="flex items-center">

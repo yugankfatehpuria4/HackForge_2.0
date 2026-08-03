@@ -44,16 +44,6 @@ Choose your tech stack, watch your project structure build in real time, and man
 
 ---
 
-## 📸 Screenshots
-
-> Add these under `public/` in your repo
-
-| AI Prompt Input | Generated Project Dashboard | Code Output |
-|-----------------|-----------------------------|-------------|
-| ![](public/prompt.png) | ![](public/dashboard.png) | ![](public/code.png) |
-
----
-
 ## 🚀 Setup & Installation
 
 ### 🔧 Prerequisites
@@ -71,35 +61,60 @@ cd backend && npm install
 ```
 
 ## ⚙️ Environment Variables
+
 ### **Frontend** — `.env.local`
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:5002
+```
+> Inlined at build time. If it is missing, the app falls back to
+> `http://localhost:5002`, but production builds must set it explicitly.
 
-Backend — backend/.env
+### **Backend** — `backend/.env`
+```bash
 PORT=5002
-MONGODB_URI=mongodb://localhost:27017/hackforge
 GEMINI_API_KEY=your_gemini_api_key
 FRONTEND_URL=http://localhost:3000
+
+# Optional — without MONGODB_URI the app still generates code,
+# it just cannot save projects to the dashboard.
+MONGODB_URI=mongodb://localhost:27017/hackforge
 REDIS_HOST=localhost
 REDIS_PORT=6379
 ```
-### 🚀 Start Services
-```bash
-# Start MongoDB
-brew services start mongodb-community@7.0
 
-# Start Redis
+### 🚀 Optional Services
+```bash
+# macOS (Homebrew)
+brew services start mongodb-community@7.0
 brew services start redis
 ```
+
 ### 🖥️ Run Both Servers
 ```bash
-# Frontend
-npm run dev
-
-# Backend
+# Terminal 1 — backend on :5002
 npm run backend:dev
+
+# Terminal 2 — frontend on :3000
+npm run dev
 ```
-Visit App: → http://localhost:3000
+Visit the app at → http://localhost:3000
+
+Verify the backend is wired up correctly — `services.gemini` must be `true`
+before code generation will work:
+```bash
+curl http://localhost:5002/health
+```
+
+---
+
+## ✅ Checks
+
+```bash
+npm run typecheck   # TypeScript, no emit
+npm run lint        # ESLint
+npm test            # Jest unit tests
+npm run build       # Production build
+```
 
 ---
 

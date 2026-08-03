@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Code, Calendar, Download, Eye, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { apiUrl } from '@/lib/api';
 
 interface Project {
   _id: string;
@@ -55,9 +56,10 @@ export function ProjectCard({ project, onRefresh }: ProjectCardProps) {
   const deleteProject = async () => {
     setDeleting(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/${project._id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        apiUrl(`/api/projects/${project._id}?userId=demo-user`),
+        { method: 'DELETE' }
+      );
 
       if (response.ok) {
         toast.success('Project deleted successfully');

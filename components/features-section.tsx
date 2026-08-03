@@ -110,8 +110,8 @@ export function FeaturesSection() {
               </h4>
               <div className="code-block">
                 <p className="text-primary font-mono">
-                  "Build a todo app with user authentication, 
-                  real-time updates, and dark mode support"
+                  &quot;Build a todo app with user authentication, real-time
+                  updates, and dark mode support&quot;
                 </p>
               </div>
             </div>

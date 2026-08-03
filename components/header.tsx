@@ -69,7 +69,7 @@ export function Header() {
                       <Link href="/templates" className="block text-foreground/80 hover:text-foreground transition-colors duration-200">
                         🎨 Templates
                       </Link>
-                      <Link href="/api-reference" className="block text-foreground/80 hover:text-foreground transition-colors duration-200">
+                      <Link href="/api" className="block text-foreground/80 hover:text-foreground transition-colors duration-200">
                         🔌 API Reference
                       </Link>
                     </div>
@@ -187,7 +187,7 @@ export function Header() {
                     🎨 Templates
                   </Link>
                   <Link 
-                    href="/api-reference" 
+                    href="/api" 
                     className="block text-foreground/80 hover:text-foreground transition-colors duration-200"
                     onClick={() => setIsMenuOpen(false)}
                   >

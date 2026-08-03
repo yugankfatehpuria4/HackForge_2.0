@@ -21,6 +21,8 @@ import {
   Languages
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { API_URL } from '@/lib/api';
+import { Header } from '@/components/header';
 
 interface Project {
   _id: string;
@@ -53,6 +55,8 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // Debounced copy of searchTerm — the raw value fired one request per keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [pagination, setPagination] = useState<Pagination>({
@@ -64,8 +68,6 @@ export default function Dashboard() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
-
   // Fetch projects
   const fetchProjects = async () => {
     try {
@@ -76,7 +78,7 @@ export default function Dashboard() {
         limit: pagination.limit.toString(),
         sortBy,
         sortOrder,
-        ...(searchTerm && { search: searchTerm })
+        ...(debouncedSearch && { search: debouncedSearch })
       });
 
       const response = await fetch(`${API_URL}/api/projects?${params}`);
@@ -205,12 +207,26 @@ export default function Dashboard() {
     return icons[framework] || '🔧';
   };
 
+  // Debounce typing so we issue one request per pause, not one per keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // A new search/sort invalidates the current page — without this, searching
+  // while on page 3 requested page 3 of the new result set and showed nothing.
+  useEffect(() => {
+    setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+  }, [debouncedSearch, sortBy, sortOrder]);
+
   useEffect(() => {
     fetchProjects();
-  }, [searchTerm, sortBy, sortOrder, pagination.page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, sortBy, sortOrder, pagination.page]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <MotionDiv

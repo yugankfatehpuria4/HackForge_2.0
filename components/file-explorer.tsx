@@ -281,7 +281,7 @@ export function FileExplorer({ files, onFileSelect, selectedFile, className = ''
         {searchTerm && filteredFiles.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No files found matching "{searchTerm}"</p>
+            <p className="text-sm">No files found matching &quot;{searchTerm}&quot;</p>
           </div>
         )}
         

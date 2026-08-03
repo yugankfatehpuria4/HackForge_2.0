@@ -1,5 +1,13 @@
 const Project = require('../models/Project');
 
+// Only these fields may be sorted on. `sortBy` came straight from the query
+// string, letting callers sort by arbitrary (including non-indexed) fields.
+const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'title', 'framework', 'isFavorite'];
+
+// Escape user input before embedding it in a RegExp — an unbalanced "(" in the
+// search box made Mongo throw and returned a 500.
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Create a new project
 const createProject = async (req, res) => {
   try {
@@ -48,20 +56,24 @@ const createProject = async (req, res) => {
 const getUserProjects = async (req, res) => {
   try {
     const userId = req.query.userId || 'demo-user';
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    // Clamp pagination so page=0/-1 cannot produce a negative skip and
+    // limit=100000 cannot dump the whole collection.
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
     const search = req.query.search || '';
-    const sortBy = req.query.sortBy || 'createdAt';
+    const requestedSort = req.query.sortBy;
+    const sortBy = SORTABLE_FIELDS.includes(requestedSort) ? requestedSort : 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
     let query = { userId };
 
     // Add search functionality using regex
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { prompt: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+        { title: { $regex: safeSearch, $options: 'i' } },
+        { prompt: { $regex: safeSearch, $options: 'i' } },
+        { tags: { $in: [new RegExp(safeSearch, 'i')] } }
       ];
     }
 

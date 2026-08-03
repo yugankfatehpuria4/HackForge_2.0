@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { apiUrl } from '@/lib/api';
 
 // Dynamically import Monaco Editor to avoid SSR issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -38,8 +39,11 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
   const [activeTab, setActiveTab] = useState<string>('');
   const [editableCode, setEditableCode] = useState<{ [key: string]: string }>({});
 
-  // Add this ref to track if files have been processed
-  const filesProcessedRef = useRef(false);
+  // `projectId` arrives after the generate request resolves, so the initial
+  // useState value goes stale. Keep the saved badge in sync with the prop.
+  useEffect(() => {
+    setIsSaved(!!projectId);
+  }, [projectId]);
 
   const copyToClipboard = async () => {
     if (!code) return;
@@ -70,13 +74,25 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
   };
 
   const exportAsZip = async () => {
-    if (!code || Object.keys(editableCode).length === 0) return;
-    
+    if (!code) {
+      toast.error('No code to export');
+      return;
+    }
+
+    // Fall back to the parsed files when nothing has been edited yet, so the
+    // button never silently does nothing.
+    const entries = Object.keys(editableCode).length > 0 ? editableCode : files;
+
+    if (Object.keys(entries).length === 0) {
+      toast.error('No files to export');
+      return;
+    }
+
     try {
       const zip = new JSZip();
-      
+
       // Add each file to the zip
-      Object.entries(editableCode).forEach(([filename, content]) => {
+      Object.entries(entries).forEach(([filename, content]) => {
         zip.file(filename, content);
       });
       
@@ -106,7 +122,7 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
     setSaving(true);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
+      const response = await fetch(apiUrl('/api/projects'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,15 +182,28 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
     return Object.keys(files).length > 1 ? files : { 'generated-code.js': rawCode };
   };
 
-  const files = code ? parseGeneratedCode(code) : {};
-  
-  // Initialize editable code when files change
+  // Memoised on `code` so the object identity is stable across renders.
+  // Recomputing it inline made the effect below fire on every single render.
+  const files = useMemo(
+    () => (code ? parseGeneratedCode(code) : {}),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [code]
+  );
+
+  // Reload the editor whenever a new generation comes in. This previously ran
+  // only once (guarded by a ref that was never reset), so a second generation
+  // kept displaying the first project's code.
   useEffect(() => {
-    if (Object.keys(files).length > 0 && !filesProcessedRef.current) {
-      setEditableCode(files);
-      setActiveTab(Object.keys(files)[0]);
-      filesProcessedRef.current = true;
+    const filenames = Object.keys(files);
+
+    if (filenames.length === 0) {
+      setEditableCode({});
+      setActiveTab('');
+      return;
     }
+
+    setEditableCode(files);
+    setActiveTab(filenames[0]);
   }, [files]);
 
   const handleCodeChange = (value: string | undefined, filename: string) => {

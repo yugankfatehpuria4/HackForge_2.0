@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Wand2, Loader2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { API_URL, apiUrl } from '@/lib/api';
 
 interface PromptFormProps {
   onGenerate: (code: string, prompt: string, projectTitle: string, projectId?: string) => void;
@@ -62,16 +63,13 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
     setIsGenerating(true);
     
     try {
-      console.log('🚀 Starting code generation...');
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
-      
       // Check if backend is reachable
-      const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
+      const healthCheck = await fetch(apiUrl('/health'));
       if (!healthCheck.ok) {
         throw new Error('Backend server is not running. Please start the backend server.');
       }
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generate`, {
+
+      const response = await fetch(apiUrl('/api/generate'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,13 +115,13 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
       
       if (error instanceof Error) {
         if (error.message.includes('Backend server is not running')) {
-          errorMessage = 'Backend server is not running. Please start it with: cd backend && npm run dev';
-        } else if (error.message.includes('OpenAI API key')) {
-          errorMessage = 'OpenAI API key is not configured. Please add your API key to backend/.env file.';
+          errorMessage = 'Backend server is not running. Please start it with: npm run backend:dev';
+        } else if (error.message.includes('API key')) {
+          errorMessage = 'Gemini API key is not configured. Please add GEMINI_API_KEY to backend/.env';
         } else if (error.message.includes('quota')) {
-          errorMessage = 'OpenAI API quota exceeded. Please check your OpenAI account billing.';
-        } else if (error.message.includes('fetch')) {
-          errorMessage = 'Cannot connect to backend. Make sure the backend server is running on port 5000.';
+          errorMessage = 'Gemini API quota exceeded. Please check your Google AI Studio billing.';
+        } else if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+          errorMessage = `Cannot connect to the backend at ${API_URL}. Make sure it is running.`;
         } else {
           errorMessage = error.message;
         }

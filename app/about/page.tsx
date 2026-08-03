@@ -9,7 +9,7 @@ export default function AboutPage() {
           Redefining full-stack development with AI-first tools.
         </p>
         <p className="text-gray-400 mb-4">
-          HackForge was created to empower anyone—from developers to founders—to turn ideas into production-grade apps effortlessly. We're a team of builders passionate about pushing the boundaries of code generation and human-computer collaboration.
+          HackForge was created to empower anyone—from developers to founders—to turn ideas into production-grade apps effortlessly. We&apos;re a team of builders passionate about pushing the boundaries of code generation and human-computer collaboration.
         </p>
         <ul className="text-left text-gray-300 mb-4 list-disc list-inside">
           <li>Mission: Make software creation accessible, fast, and fun</li>

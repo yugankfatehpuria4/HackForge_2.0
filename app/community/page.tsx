@@ -174,7 +174,7 @@ export default function CommunityPage() {
                   <h3 className="text-xl font-semibold text-foreground">Supportive Environment</h3>
                 </div>
                 <p className="text-gray-300 mb-4">
-                  Our community is built on the principles of kindness, inclusivity, and mutual support. Whether you're a beginner or an expert, you'll find a welcoming space to learn and grow.
+                  Our community is built on the principles of kindness, inclusivity, and mutual support. Whether you&apos;re a beginner or an expert, you&apos;ll find a welcoming space to learn and grow.
                 </p>
                 <ul className="text-sm text-gray-400 space-y-2">
                   <li>• Zero-tolerance policy for harassment</li>
@@ -249,13 +249,13 @@ export default function CommunityPage() {
                   <li>• Respectful and constructive discussions</li>
                   <li>• Sharing knowledge and experiences</li>
                   <li>• Asking questions and seeking help</li>
-                  <li>• Celebrating others' successes</li>
+                  <li>• Celebrating others&apos; successes</li>
                   <li>• Providing helpful feedback</li>
                   <li>• Reporting inappropriate behavior</li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-foreground mb-4 text-red-400">❌ What We Don't Allow</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-4 text-red-400">❌ What We Don&apos;t Allow</h3>
                 <ul className="text-gray-300 space-y-2">
                   <li>• Harassment or bullying</li>
                   <li>• Spam or self-promotion</li>

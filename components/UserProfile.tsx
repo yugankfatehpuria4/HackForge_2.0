@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User, ROLES, FEATURES, TOKEN_LIMITS } from '@/lib/auth';
+import { useState, useEffect, useCallback } from 'react';
+import { User, ROLES, FEATURES } from '@/lib/roles';
+import { apiUrl } from '@/lib/api';
 
 interface UserProfileProps {
   userId: string;
@@ -12,14 +13,13 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, [userId]);
-
-  const fetchUserProfile = async () => {
+  // The profile route lives on the Express backend, not on a Next.js API
+  // route — the previous relative '/api/auth/...' path always 404'd.
+  const fetchUserProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/auth/profile/${userId}`);
+      setError(null);
+      const response = await fetch(apiUrl(`/api/auth/profile/${userId}`));
       if (!response.ok) {
         throw new Error('Failed to fetch user profile');
       }
@@ -30,7 +30,11 @@ export default function UserProfile({ userId }: UserProfileProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   const getRoleColor = (role: string) => {
     switch (role) {

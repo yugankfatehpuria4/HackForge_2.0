@@ -1,15 +1,17 @@
 import { cacheService } from './cache';
+import {
+  User,
+  ROLES,
+  FEATURES,
+  TOKEN_LIMITS,
+  ROLE_FEATURES,
+} from './roles';
 
-export interface User {
-  id: string;
-  email: string;
-  role: 'free' | 'premium' | 'enterprise';
-  aiTokens: number;
-  maxTokens: number;
-  features: string[];
-  createdAt: Date;
-  lastActive: Date;
-}
+// Re-exported so existing server-side imports keep working. Client components
+// should import these from './roles' directly — this module instantiates the
+// Redis client at import time.
+export { ROLES, FEATURES, TOKEN_LIMITS, ROLE_FEATURES };
+export type { User };
 
 export interface AuthContext {
   user: User | null;
@@ -18,51 +20,6 @@ export interface AuthContext {
   hasFeature: (feature: string) => boolean;
   canUseTokens: (tokens: number) => boolean;
 }
-
-// Role definitions
-export const ROLES = {
-  FREE: 'free',
-  PREMIUM: 'premium',
-  ENTERPRISE: 'enterprise'
-} as const;
-
-// Feature definitions
-export const FEATURES = {
-  ADVANCED_AI: 'advanced_ai',
-  CUSTOM_TEMPLATES: 'custom_templates',
-  TEAM_COLLABORATION: 'team_collaboration',
-  API_ACCESS: 'api_access',
-  PRIORITY_SUPPORT: 'priority_support',
-  UNLIMITED_TOKENS: 'unlimited_tokens'
-} as const;
-
-// Token limits per role
-export const TOKEN_LIMITS = {
-  [ROLES.FREE]: 100,
-  [ROLES.PREMIUM]: 1000,
-  [ROLES.ENTERPRISE]: -1 // Unlimited
-} as const;
-
-// Features per role
-export const ROLE_FEATURES = {
-  [ROLES.FREE]: [
-    FEATURES.ADVANCED_AI
-  ] as string[],
-  [ROLES.PREMIUM]: [
-    FEATURES.ADVANCED_AI,
-    FEATURES.CUSTOM_TEMPLATES,
-    FEATURES.API_ACCESS,
-    FEATURES.PRIORITY_SUPPORT
-  ] as string[],
-  [ROLES.ENTERPRISE]: [
-    FEATURES.ADVANCED_AI,
-    FEATURES.CUSTOM_TEMPLATES,
-    FEATURES.TEAM_COLLABORATION,
-    FEATURES.API_ACCESS,
-    FEATURES.PRIORITY_SUPPORT,
-    FEATURES.UNLIMITED_TOKENS
-  ] as string[]
-} as const;
 
 export class AuthService {
   private static instance: AuthService;

@@ -1,31 +1,54 @@
-const prettier = require('prettier');
-const { ESLint } = require('eslint');
+// prettier and eslint are optional tooling dependencies that are not part of
+// backend/package.json. Requiring them at module scope made this whole file
+// throw MODULE_NOT_FOUND on import, so load them defensively and degrade to
+// "no formatting / no linting" when they are absent.
+let prettier = null;
+try {
+  prettier = require('prettier');
+} catch (error) {
+  console.warn('⚠️  prettier not installed — generated code will not be formatted');
+}
+
+let ESLint = null;
+try {
+  ({ ESLint } = require('eslint'));
+} catch (error) {
+  console.warn('⚠️  eslint not installed — generated code will not be linted');
+}
 
 class CodeProcessor {
   constructor() {
-    this.eslint = new ESLint({
-      useEslintrc: false,
-      overrideConfig: {
-        extends: ['eslint:recommended'],
-        env: {
-          browser: true,
-          es2021: true,
-          node: true,
+    this.eslint = null;
+
+    if (!ESLint) return;
+
+    try {
+      this.eslint = new ESLint({
+        useEslintrc: false,
+        overrideConfig: {
+          extends: ['eslint:recommended'],
+          env: {
+            browser: true,
+            es2021: true,
+            node: true,
+          },
+          parserOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+          },
+          rules: {
+            'no-eval': 'error',
+            'no-implied-eval': 'error',
+            'no-new-func': 'error',
+            'no-script-url': 'error',
+            'no-unsafe-finally': 'error',
+            'no-unsafe-negation': 'error',
+          },
         },
-        parserOptions: {
-          ecmaVersion: 'latest',
-          sourceType: 'module',
-        },
-        rules: {
-          'no-eval': 'error',
-          'no-implied-eval': 'error',
-          'no-new-func': 'error',
-          'no-script-url': 'error',
-          'no-unsafe-finally': 'error',
-          'no-unsafe-negation': 'error',
-        },
-      },
-    });
+      });
+    } catch (error) {
+      console.warn('⚠️  Could not initialise ESLint:', error.message);
+    }
   }
 
   /**
@@ -176,6 +199,8 @@ class CodeProcessor {
    * Format code using Prettier
    */
   async formatCode(code, framework) {
+    if (!prettier) return code;
+
     try {
       const config = this.getPrettierConfig(framework);
       return await prettier.format(code, config);
@@ -226,6 +251,10 @@ class CodeProcessor {
    * Lint code using ESLint
    */
   async lintCode(code, framework) {
+    if (!this.eslint) {
+      return { issues: [], score: 100, errorCount: 0, warningCount: 0 };
+    }
+
     try {
       const results = await this.eslint.lintText(code);
       const issues = [];

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
 
 // Load environment variables from backend directory
@@ -15,15 +16,9 @@ try {
   console.log('⚠️  Database connection skipped (optional for basic functionality)');
 }
 
-// Initialize Redis cache (optional)
-let cacheService;
-try {
-  const { cacheService: redisCache } = require('../lib/cache');
-  cacheService = redisCache;
-  console.log('✅ Redis cache service initialized');
-} catch (error) {
-  console.log('⚠️  Redis cache not available (optional for performance)');
-}
+// Initialize Redis cache (optional). This used to require('../lib/cache'),
+// a TypeScript file Node cannot load, so caching was always disabled.
+const cacheService = require('./services/cacheService');
 
 const app = express();
 
@@ -54,21 +49,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cache middleware for GET requests
-if (cacheService) {
+// Cache middleware for GET requests.
+// The previous version only ever read from the cache — nothing wrote to it, so
+// it could never produce a hit. Wrap res.json to store successful responses.
+if (cacheService.enabled) {
   app.use('/api', async (req, res, next) => {
-    if (req.method === 'GET') {
-      const cacheKey = `api:${req.originalUrl}`;
-      try {
-        const cached = await cacheService.get(cacheKey);
-        if (cached) {
-          console.log(`📦 Cache hit: ${cacheKey}`);
-          return res.json(cached);
-        }
-      } catch (error) {
-        console.warn('Cache error:', error);
+    if (req.method !== 'GET') return next();
+
+    const cacheKey = `api:${req.originalUrl}`;
+
+    try {
+      const cached = await cacheService.get(cacheKey);
+      if (cached) {
+        console.log(`📦 Cache hit: ${cacheKey}`);
+        return res.json(cached);
       }
+    } catch (error) {
+      console.warn('Cache error:', error.message);
     }
+
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        cacheService.set(cacheKey, body, 60).catch(() => {});
+      }
+      return originalJson(body);
+    };
+
     next();
   });
 }
@@ -82,33 +89,32 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/offline', require('./routes/offlineRoutes'));
 
 // Health check with enhanced status
-app.get('/health', async (req, res) => {
-  const healthStatus = {
+app.get('/health', (req, res) => {
+  res.json({
     status: 'OK',
     message: 'HackForge Backend is running',
     timestamp: new Date().toISOString(),
     services: {
-      gemini: !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here',
-      cache: !!cacheService,
-      database: false // Will be updated if DB is connected
+      gemini:
+        !!process.env.GEMINI_API_KEY &&
+        process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here',
+      cache: cacheService.isConnected,
+      // readyState 1 === connected. This was previously hardcoded to false, so
+      // health always reported the database as down even when it was up.
+      database: mongoose.connection.readyState === 1
     },
     environment: process.env.NODE_ENV || 'development'
-  };
-
-  // Check cache service status
-  if (cacheService) {
-    try {
-      await cacheService.set('health:test', 'test', 1);
-      healthStatus.services.cache = true;
-    } catch (error) {
-      healthStatus.services.cache = false;
-    }
-  }
-
-  res.json(healthStatus);
+  });
 });
 
-// Error handling middleware
+// Unknown API routes should return JSON, not Express' default HTML page.
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+    error: 'NOT_FOUND'
+  });
+});
 
 // Error handling middleware
 app.use(errorHandler);
@@ -119,7 +125,15 @@ app.listen(PORT, () => {
   console.log(`🚀 HackForge Backend running on http://localhost:${PORT}`);
   console.log(`📡 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   console.log(`🤖 Gemini configured: ${!!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here' ? 'Yes' : 'No - Please add your API key'}`);
-  console.log(`💾 Cache: ${cacheService ? 'Redis' : 'Disabled'}`);
-  console.log(`🔐 Auth: Role-based access control enabled`);
-  console.log(`📱 Offline: IndexedDB support enabled`);
+  console.log(`💾 Cache: ${cacheService.enabled ? 'Redis' : 'Disabled'}`);
+});
+
+// Without these, a rejected promise or thrown error anywhere in the app takes
+// the process down with no usable log line.
+process.on('unhandledRejection', (reason) => {
+  console.error('❌ Unhandled promise rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught exception:', error);
 });

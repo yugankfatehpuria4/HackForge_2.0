@@ -49,7 +49,9 @@ class GeminiService {
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 2000,
+            // 2000 tokens truncated almost every multi-file generation
+            // mid-function. gemini-2.0-flash supports 8192 output tokens.
+            maxOutputTokens: 8192,
             topP: 0.8,
             topK: 40
           }
@@ -57,18 +59,45 @@ class GeminiService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Gemini API Error: ${errorData.error?.message || response.statusText}`);
+        // A non-JSON error body (gateway HTML, empty 502) made .json() throw
+        // and masked the real status code.
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Gemini API Error (${response.status}): ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
       console.log('✅ Gemini API response received');
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        return data.candidates[0].content.parts[0].text;
-      } else {
-        throw new Error('Invalid response format from Gemini API');
+
+      // A prompt rejected by the safety filters comes back with no candidates.
+      if (data.promptFeedback?.blockReason) {
+        throw new Error(
+          `Prompt was blocked by Gemini safety filters (${data.promptFeedback.blockReason}). Try rephrasing your description.`
+        );
       }
+
+      const candidate = data.candidates?.[0];
+      const text = candidate?.content?.parts
+        ?.map((part) => part.text)
+        .filter(Boolean)
+        .join('');
+
+      if (!text) {
+        // Previously this path did `parts[0].text` unguarded and threw a
+        // TypeError whenever the response was blocked or empty.
+        throw new Error(
+          candidate?.finishReason
+            ? `Gemini returned no code (finishReason: ${candidate.finishReason}).`
+            : 'Invalid response format from Gemini API'
+        );
+      }
+
+      if (candidate.finishReason === 'MAX_TOKENS') {
+        console.warn('⚠️  Gemini response hit the output token limit and may be truncated');
+      }
+
+      return text;
     } catch (error) {
       console.error('❌ Gemini API Error:', error.message);
       

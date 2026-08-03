@@ -13,7 +13,7 @@ export default function DocumentationPage() {
         <div className="text-center max-w-4xl mx-auto mb-16">
           <h1 className="text-5xl font-bold neon-text mb-6">📚 Documentation</h1>
           <p className="text-xl text-gray-300 mb-8">
-            Welcome to the official <strong>HackForge Documentation</strong>. Here you'll find detailed guides, API references, and best practices to help you turn ideas into production-ready apps with AI-powered code generation.
+            Welcome to the official <strong>HackForge Documentation</strong>. Here you&apos;ll find detailed guides, API references, and best practices to help you turn ideas into production-ready apps with AI-powered code generation.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <div className="glass-effect border border-white/10 rounded-lg px-6 py-3">
@@ -186,7 +186,7 @@ export default function DocumentationPage() {
               🎨 Templates
             </Link>
             <Link 
-              href="/api-reference" 
+              href="/documentation/cli-api" 
               className="glass-effect border border-white/10 rounded-lg px-6 py-3 hover:border-primary/50 transition-all duration-300 hover:neon-text"
             >
               🔌 API Reference
@@ -206,7 +206,7 @@ export default function DocumentationPage() {
             <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-2">Interactive Documentation Coming Soon</h3>
             <p className="text-gray-300 mb-4">
-              We're working on interactive documentation with code sandboxes, video walkthroughs, and AI-powered search to make learning even more effective.
+              We&apos;re working on interactive documentation with code sandboxes, video walkthroughs, and AI-powered search to make learning even more effective.
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm text-gray-400">
               <span className="px-3 py-1 bg-primary/10 rounded-full">Code Sandboxes</span>

@@ -17,7 +17,6 @@
     "express-rate-limit": "^6.10.0",
     "ioredis": "^5.7.0",
     "mongoose": "^7.5.0",
-    "openai": "^4.0.0",
     "redis": "^5.8.0"
   },
   "devDependencies": {
