@@ -18,7 +18,6 @@
     "render-build": "npm run build && npm run backend:build"
   },
   "dependencies": {
-    "@clerk/nextjs": "^4.29.9",
     "@google/genai": "^1.12.0",
     "@hookform/resolvers": "^3.9.0",
     "@monaco-editor/react": "^4.7.0",

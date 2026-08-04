@@ -6,9 +6,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 export function HeroSection() {
-  // Temporarily disabled Clerk authentication
-  const isSignedIn = false;
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated Background */}
@@ -45,24 +42,15 @@ export function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            {isSignedIn ? (
-              <Link href="/generate">
-                <Button size="lg" className="neon-glow text-lg px-8 py-6">
-                  <Zap className="h-5 w-5 mr-2" />
-                  Start Generating
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/generate">
-                <Button size="lg" className="neon-glow text-lg px-8 py-6">
-                  <Zap className="h-5 w-5 mr-2" />
-                  Get Started Free
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </Link>
-            )}
-            
+            <Link href="/generate">
+              <Button size="lg" className="neon-glow text-lg px-8 py-6">
+                <Zap className="h-5 w-5 mr-2" />
+                Get Started Free
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+            </Link>
+
+
             <Link href="#features">
               <Button variant="outline" size="lg" className="text-lg px-8 py-6 glass-effect border-white/20 hover:border-primary/50">
                 <Code className="h-5 w-5 mr-2" />

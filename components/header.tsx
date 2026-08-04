@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Code, Menu, X, Zap, Users, Shield, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import { SignInButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -99,39 +98,20 @@ export function Header() {
               About
             </Link>
 
-            {/* <SignedIn> */}
-              <Link 
-                href="/dashboard" 
-                className="text-foreground/80 hover:text-foreground transition-colors duration-200 hover:neon-text"
-              >
-                Dashboard
-              </Link>
-              <Link 
-                href="/generate" 
-                className="text-foreground/80 hover:text-foreground transition-colors duration-200 hover:neon-text"
-              >
-                Generate
-              </Link>
-            {/* </SignedIn> */}
-          </nav>
+            <Link
+              href="/dashboard"
+              className="text-foreground/80 hover:text-foreground transition-colors duration-200 hover:neon-text"
+            >
+              Dashboard
+            </Link>
 
-          {/* Desktop Auth */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* <SignedOut> */}
-            {/* Sign In button removed */}
-            {/* </SignedOut> */}
-            {/* <SignedIn>
-              <UserButton 
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8",
-                    userButtonPopoverCard: "glass-effect border border-white/10",
-                    userButtonPopoverActionButton: "hover:bg-white/10",
-                  }
-                }}
-              />
-            </SignedIn> */}
-          </div>
+            <Link
+              href="/generate"
+              className="text-foreground/80 hover:text-foreground transition-colors duration-200 hover:neon-text"
+            >
+              Generate
+            </Link>
+          </nav>
 
           {/* Mobile Menu Button */}
           <Button
@@ -219,41 +199,21 @@ export function Header() {
                   About
                 </Link>
 
-                {/* <SignedIn> */}
-                  <Link 
-                    href="/dashboard" 
-                    className="text-foreground/80 hover:text-foreground transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link 
-                    href="/generate" 
-                    className="text-foreground/80 hover:text-foreground transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Generate
-                  </Link>
-                {/* </SignedIn> */}
-                
-                <div className="flex flex-col space-y-2 pt-4 border-t border-white/10">
-                  {/* <SignedOut> */}
-                  {/* Sign In button removed */}
-                  {/* </SignedOut> */}
-                  {/* <SignedIn>
-                    <div className="flex justify-center">
-                      <UserButton 
-                        appearance={{
-                          elements: {
-                            avatarBox: "h-8 w-8",
-                            userButtonPopoverCard: "glass-effect border border-white/10",
-                            userButtonPopoverActionButton: "hover:bg-white/10",
-                          }
-                        }}
-                      />
-                    </div>
-                  </SignedIn> */}
-                </div>
+                <Link
+                  href="/dashboard"
+                  className="text-foreground/80 hover:text-foreground transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+
+                <Link
+                  href="/generate"
+                  className="text-foreground/80 hover:text-foreground transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Generate
+                </Link>
               </nav>
             </motion.div>
           )}

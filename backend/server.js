@@ -84,10 +84,6 @@ if (cacheService.enabled) {
 app.use('/api', require('./routes/codeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 
-// New routes for enhanced features
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/offline', require('./routes/offlineRoutes'));
-
 // Health check with enhanced status
 app.get('/health', (req, res) => {
   res.json({
