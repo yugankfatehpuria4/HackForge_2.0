@@ -8,8 +8,25 @@ const {
   toggleFavorite 
 } = require('../controllers/projectController');
 const rateLimit = require('express-rate-limit');
+const mongoose = require('mongoose');
 
 const router = express.Router();
+
+// Fail fast when there is no database.
+// Without this, Mongoose buffers the query and every request hangs for the
+// full 10s bufferTimeoutMS before returning a generic 500 — the dashboard
+// showed a spinner for ten seconds and then blamed the backend for being down.
+router.use((req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message:
+        'Database is not connected. Set MONGODB_URI in backend/.env to save and list projects.',
+      error: 'DATABASE_UNAVAILABLE'
+    });
+  }
+  next();
+});
 
 // Rate limiting for project operations
 const projectLimiter = rateLimit({

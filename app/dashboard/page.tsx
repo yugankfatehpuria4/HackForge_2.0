@@ -67,6 +67,8 @@ export default function Dashboard() {
   });
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  // Distinguishes "you have no projects yet" from "we could not load them".
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Fetch projects
   const fetchProjects = async () => {
@@ -82,22 +84,32 @@ export default function Dashboard() {
       });
 
       const response = await fetch(`${API_URL}/api/projects?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (data.success) {
-        setProjects(data.projects);
-        setPagination(data.pagination);
-      } else {
-        toast.error('Failed to fetch projects');
+      if (!response.ok || !data?.success) {
+        // Prefer the server's explanation. Reporting "check if the backend is
+        // running" for every failure was wrong whenever the backend was up and
+        // answering — a missing database being the common case.
+        throw new Error(data?.message || `HTTP ${response.status}: ${response.statusText}`);
       }
+
+      setProjects(data.projects);
+      setPagination(data.pagination);
+      setLoadError(null);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      toast.error('Failed to fetch projects. Please check if the backend server is running.');
+
+      // A genuine connection failure throws a TypeError before any response.
+      const unreachable = error instanceof TypeError;
+      const message = unreachable
+        ? `Cannot reach the backend at ${API_URL}. Start it with: npm run backend:dev`
+        : error instanceof Error
+          ? error.message
+          : 'Failed to fetch projects';
+
+      setLoadError(message);
+      setProjects([]);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -284,6 +296,24 @@ export default function Dashboard() {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
           </div>
+        ) : loadError ? (
+          <MotionDiv
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <Code className="h-16 w-16 text-red-400/70 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-200 mb-2">
+              Couldn&apos;t load your projects
+            </h3>
+            <p className="text-gray-400 mb-6 max-w-xl mx-auto">{loadError}</p>
+            <Button
+              onClick={fetchProjects}
+              className="glass-effect hover:neon-glow"
+            >
+              Try again
+            </Button>
+          </MotionDiv>
         ) : projects.length === 0 ? (
           <MotionDiv
             initial={{ opacity: 0 }}

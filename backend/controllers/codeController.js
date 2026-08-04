@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const geminiService = require('../services/geminiService');
 const Project = require('../models/Project');
 
@@ -34,9 +35,11 @@ const generateCode = async (req, res) => {
     const generationTime = Date.now() - startTime;
     console.log('✅ Code generated successfully');
 
-    // Auto-save to project history if requested
+    // Auto-save to project history if requested.
+    // Skip entirely when there is no database, otherwise Mongoose buffers the
+    // save and adds 10s to a request that already succeeded.
     let savedProject = null;
-    if (saveToHistory) {
+    if (saveToHistory && mongoose.connection.readyState === 1) {
       try {
         const userId = req.body.userId || 'demo-user';
         const title = projectTitle || `Generated from: ${prompt.substring(0, 50)}...`;

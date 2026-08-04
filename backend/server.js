@@ -39,13 +39,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Add request logging with performance tracking
 app.use((req, res, next) => {
   const start = Date.now();
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  
+  // req.path is rewritten relative to the matched router, so by the time
+  // 'finish' fires it reads '/' for every mounted route. originalUrl is stable.
+  const url = req.originalUrl;
+
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    console.log(`${req.method} ${url} - ${res.statusCode} (${duration}ms)`);
   });
-  
+
   next();
 });
 
