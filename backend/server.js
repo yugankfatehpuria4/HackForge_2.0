@@ -27,10 +27,35 @@ const app = express();
 console.log('🔍 Services initialization complete');
 
 // Middleware
+// FRONTEND_URL accepts a comma-separated list. A single origin meant that
+// opening the app on a LAN address (http://192.168.1.4:3000) while the backend
+// allowed only http://localhost:3000 failed every request with an opaque
+// "Failed to fetch" in the browser.
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin(origin, callback) {
+    // No origin: curl, server-to-server, same-origin navigations.
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Any localhost/LAN origin is fine in development; production stays strict.
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+
+    console.warn(`⚠️  Blocked CORS request from ${origin}. Add it to FRONTEND_URL.`);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -128,7 +153,7 @@ const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
   console.log(`🚀 HackForge Backend running on http://localhost:${PORT}`);
-  console.log(`📡 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  console.log(`📡 CORS allowed origins: ${allowedOrigins.join(', ')}${process.env.NODE_ENV !== 'production' ? ' (+ any localhost/LAN origin in development)' : ''}`);
   console.log(`🤖 Gemini configured: ${!!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here' ? 'Yes' : 'No - Please add your API key'}`);
   console.log(`💾 Cache: ${cacheService.enabled ? 'Redis' : 'Disabled'}`);
 });

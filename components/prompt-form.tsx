@@ -11,6 +11,7 @@ import { Wand2, Loader2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { API_URL, apiUrl } from '@/lib/api';
+import { authFetch } from '@/lib/auth-client';
 
 interface PromptFormProps {
   onGenerate: (code: string, prompt: string, projectTitle: string, projectId?: string) => void;
@@ -63,22 +64,32 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
     setIsGenerating(true);
     
     try {
-      // Check if backend is reachable
-      const healthCheck = await fetch(apiUrl('/health'));
-      if (!healthCheck.ok) {
-        throw new Error('Backend server is not running. Please start the backend server.');
+      // Check if backend is reachable.
+      // fetch only rejects on a transport failure — backend down, DNS, or a
+      // CORS rejection. The raw "Failed to fetch" that surfaced here told the
+      // user nothing about which of those it was.
+      try {
+        const healthCheck = await fetch(apiUrl('/health'));
+        if (!healthCheck.ok) {
+          throw new Error('Backend server is not running. Please start the backend server.');
+        }
+      } catch (reachError) {
+        if (reachError instanceof TypeError) {
+          throw new Error('UNREACHABLE_BACKEND');
+        }
+        throw reachError;
       }
 
-      const response = await fetch(apiUrl('/api/generate'), {
+      // authFetch attaches the bearer token, which is what lets the backend
+      // auto-save the result to a signed-in user's history. A plain fetch here
+      // meant generations were never saved, even when signed in. userId is no
+      // longer sent — the server takes identity from the token.
+      const response = await authFetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           prompt: `${prompt}\n\nTech Stack: ${techStack}`,
           projectTitle: projectTitle || `Generated from: ${prompt.substring(0, 50)}...`,
           saveToHistory: true,
-          userId: 'demo-user'
         }),
       });
 
@@ -114,7 +125,12 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
       let errorMessage = 'Failed to generate code. Please try again.';
       
       if (error instanceof Error) {
-        if (error.message.includes('Backend server is not running')) {
+        if (error.message === 'UNREACHABLE_BACKEND') {
+          errorMessage =
+            `Cannot reach the backend at ${API_URL}. Check it is running, that ` +
+            `NEXT_PUBLIC_API_URL points at it, and that FRONTEND_URL on the backend ` +
+            `matches the address in your browser's URL bar (CORS).`;
+        } else if (error.message.includes('Backend server is not running')) {
           errorMessage = 'Backend server is not running. Please start it with: npm run backend:dev';
         } else if (error.message.includes('API key')) {
           errorMessage = 'Gemini API key is not configured. Please add GEMINI_API_KEY to backend/.env';
