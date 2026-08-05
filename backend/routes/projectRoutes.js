@@ -9,8 +9,16 @@ const {
 } = require('../controllers/projectController');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Every project route requires a signed-in user. Previously userId came from
+// req.body/req.query — a client-supplied value the server merely trusted —
+// so anyone who knew (or guessed) another user's id could read, edit, or
+// delete their projects. requireAuth derives userId from a verified JWT
+// instead; controllers no longer accept it from the request at all.
+router.use(requireAuth);
 
 // Fail fast when there is no database.
 // Without this, Mongoose buffers the query and every request hangs for the

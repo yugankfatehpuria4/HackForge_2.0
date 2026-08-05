@@ -67,16 +67,16 @@ export function HeroSection() {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
           >
             <div className="glass-effect rounded-lg p-6">
-              <div className="text-3xl font-bold text-primary mb-2">10k+</div>
-              <div className="text-sm text-muted-foreground">Projects Generated</div>
+              <div className="text-3xl font-bold text-primary mb-2">10+</div>
+              <div className="text-sm text-muted-foreground">Languages &amp; Frameworks</div>
             </div>
             <div className="glass-effect rounded-lg p-6">
-              <div className="text-3xl font-bold text-accent mb-2">500+</div>
-              <div className="text-sm text-muted-foreground">Developers</div>
+              <div className="text-3xl font-bold text-accent mb-2">2</div>
+              <div className="text-sm text-muted-foreground">Deploy Targets</div>
             </div>
             <div className="glass-effect rounded-lg p-6">
-              <div className="text-3xl font-bold text-green-400 mb-2">99.9%</div>
-              <div className="text-sm text-muted-foreground">Uptime</div>
+              <div className="text-3xl font-bold text-green-400 mb-2">Open</div>
+              <div className="text-sm text-muted-foreground">Source</div>
             </div>
             <div className="glass-effect rounded-lg p-6">
               <div className="text-3xl font-bold text-yellow-400 mb-2">24/7</div>

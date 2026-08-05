@@ -38,10 +38,13 @@ const generateCode = async (req, res) => {
     // Auto-save to project history if requested.
     // Skip entirely when there is no database, otherwise Mongoose buffers the
     // save and adds 10s to a request that already succeeded.
+    // Only save when the caller is actually signed in — optionalAuth sets
+    // req.userId from a verified token. Anonymous visitors can still generate
+    // code, they just get nothing written to a history that isn't theirs.
     let savedProject = null;
-    if (saveToHistory && mongoose.connection.readyState === 1) {
+    if (saveToHistory && req.userId && mongoose.connection.readyState === 1) {
       try {
-        const userId = req.body.userId || 'demo-user';
+        const userId = req.userId;
         const title = projectTitle || `Generated from: ${prompt.substring(0, 50)}...`;
         
         // Extract language and framework from the prompt or generated code

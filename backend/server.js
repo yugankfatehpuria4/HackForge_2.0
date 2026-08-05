@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
+const { optionalAuth } = require('./middleware/auth');
 
 // Load environment variables from backend directory
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -55,10 +56,15 @@ app.use((req, res, next) => {
 // The previous version only ever read from the cache — nothing wrote to it, so
 // it could never produce a hit. Wrap res.json to store successful responses.
 if (cacheService.enabled) {
+  // optionalAuth must run before the cache so the key can be scoped to the
+  // caller. Keying on the URL alone would serve one signed-in user's projects
+  // to a different user requesting the same path.
+  app.use('/api', optionalAuth);
+
   app.use('/api', async (req, res, next) => {
     if (req.method !== 'GET') return next();
 
-    const cacheKey = `api:${req.originalUrl}`;
+    const cacheKey = `api:${req.userId || 'anon'}:${req.originalUrl}`;
 
     try {
       const cached = await cacheService.get(cacheKey);
@@ -83,6 +89,7 @@ if (cacheService.enabled) {
 }
 
 // Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api', require('./routes/codeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 

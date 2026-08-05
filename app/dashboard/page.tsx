@@ -22,7 +22,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/auth-client';
+import { useAuth } from '@/components/auth-provider';
 import { Header } from '@/components/header';
+import Link from 'next/link';
 
 interface Project {
   _id: string;
@@ -69,13 +72,13 @@ export default function Dashboard() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   // Distinguishes "you have no projects yet" from "we could not load them".
   const [loadError, setLoadError] = useState<string | null>(null);
+  const { user, loading: authLoading } = useAuth();
 
   // Fetch projects
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        userId: 'demo-user',
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
         sortBy,
@@ -83,7 +86,7 @@ export default function Dashboard() {
         ...(debouncedSearch && { search: debouncedSearch })
       });
 
-      const response = await fetch(`${API_URL}/api/projects?${params}`);
+      const response = await authFetch(`/api/projects?${params}`);
       const data = await response.json().catch(() => null);
 
       if (!response.ok || !data?.success) {
@@ -118,10 +121,9 @@ export default function Dashboard() {
   // Toggle favorite
   const toggleFavorite = async (projectId: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/projects/${projectId}/favorite`, {
+      const response = await authFetch(`/api/projects/${projectId}/favorite`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'demo-user' })
+        body: JSON.stringify({})
       });
 
       if (!response.ok) {
@@ -150,7 +152,7 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/projects/${projectId}?userId=demo-user`, {
+      const response = await authFetch(`/api/projects/${projectId}`, {
         method: 'DELETE'
       });
 
@@ -231,10 +233,19 @@ export default function Dashboard() {
     setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
   }, [debouncedSearch, sortBy, sortOrder]);
 
+  // Wait for the auth check before fetching — firing while it is still
+  // resolving would send an anonymous request and get a guaranteed 401.
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     fetchProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, sortBy, sortOrder, pagination.page]);
+  }, [authLoading, user, debouncedSearch, sortBy, sortOrder, pagination.page]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -292,10 +303,27 @@ export default function Dashboard() {
         </MotionDiv>
 
         {/* Projects Grid */}
-        {loading ? (
+        {authLoading || loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
           </div>
+        ) : !user ? (
+          <MotionDiv
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <Code className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-200 mb-2">
+              Sign in to see your projects
+            </h3>
+            <p className="text-gray-400 mb-6 max-w-xl mx-auto">
+              Projects are saved to your account, so only you can see them.
+            </p>
+            <Button asChild className="glass-effect hover:neon-glow">
+              <Link href="/signin?next=/dashboard">Sign in</Link>
+            </Button>
+          </MotionDiv>
         ) : loadError ? (
           <MotionDiv
             initial={{ opacity: 0 }}

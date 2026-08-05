@@ -12,7 +12,8 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const createProject = async (req, res) => {
   try {
     const { title, prompt, generatedCode, framework, tags } = req.body;
-    const userId = req.body.userId || 'demo-user'; // For now, using demo user
+    // requireAuth verified the caller's identity; never trust a client-supplied userId.
+    const userId = req.userId;
 
     if (!title || !prompt || !generatedCode) {
       return res.status(400).json({
@@ -55,7 +56,7 @@ const createProject = async (req, res) => {
 // Get all projects for a user
 const getUserProjects = async (req, res) => {
   try {
-    const userId = req.query.userId || 'demo-user';
+    const userId = req.userId;
     // Clamp pagination so page=0/-1 cannot produce a negative skip and
     // limit=100000 cannot dump the whole collection.
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
@@ -112,7 +113,7 @@ const getUserProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.query.userId || 'demo-user';
+    const userId = req.userId;
 
     const project = await Project.findOne({ _id: id, userId });
 
@@ -143,7 +144,7 @@ const getProjectById = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.body.userId || 'demo-user';
+    const userId = req.userId;
     const updateData = req.body;
 
     // Remove fields that shouldn't be updated
@@ -186,7 +187,7 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.query.userId || 'demo-user';
+    const userId = req.userId;
 
     const project = await Project.findOneAndDelete({ _id: id, userId });
 
@@ -217,7 +218,7 @@ const deleteProject = async (req, res) => {
 const toggleFavorite = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.body.userId || 'demo-user';
+    const userId = req.userId;
 
     const project = await Project.findOne({ _id: id, userId });
 

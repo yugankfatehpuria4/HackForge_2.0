@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { apiUrl } from '@/lib/api';
+import { authFetch } from '@/lib/auth-client';
 
 // Dynamically import Monaco Editor to avoid SSR issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -120,15 +120,12 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
     }
 
     setSaving(true);
-    
+
     try {
-      const response = await fetch(apiUrl('/api/projects'), {
+      // userId is no longer sent — the backend derives it from the auth token.
+      const response = await authFetch('/api/projects', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
-          userId: 'demo-user',
           title: projectTitle,
           prompt: prompt,
           generatedCode: code,
@@ -137,17 +134,22 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
         }),
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setIsSaved(true);
-        toast.success('Project saved successfully!');
-      } else {
-        throw new Error(data.message || 'Failed to save project');
+      const data = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        toast.error('Sign in to save projects to your dashboard.');
+        return;
       }
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || 'Failed to save project');
+      }
+
+      setIsSaved(true);
+      toast.success('Project saved successfully!');
     } catch (error) {
       console.error('Error saving project:', error);
-      toast.error('Failed to save project');
+      toast.error(error instanceof Error ? error.message : 'Failed to save project');
     } finally {
       setSaving(false);
     }

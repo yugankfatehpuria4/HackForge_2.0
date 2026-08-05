@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Code, Menu, X, Zap, Users, Shield, ChevronDown } from 'lucide-react';
+import { Code, Menu, X, Zap, Users, Shield, ChevronDown, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/components/auth-provider';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const { user, loading, logout } = useAuth();
 
   return (
     <motion.header 
@@ -113,6 +115,30 @@ export function Header() {
             </Link>
           </nav>
 
+          {/* Auth (desktop) */}
+          <div className="hidden md:flex items-center gap-3">
+            {loading ? null : user ? (
+              <>
+                <span className="text-sm text-foreground/70 max-w-[16ch] truncate" title={user.email}>
+                  {user.name || user.email}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="glass-effect border-white/20"
+                  title="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button asChild size="sm" className="neon-glow">
+                <Link href="/signin">Sign in</Link>
+              </Button>
+            )}
+          </div>
+
           {/* Mobile Menu Button */}
           <Button
             variant="ghost"
@@ -214,6 +240,29 @@ export function Header() {
                 >
                   Generate
                 </Link>
+
+                <div className="pt-4 border-t border-white/10">
+                  {loading ? null : user ? (
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors duration-200"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out ({user.name || user.email})
+                    </button>
+                  ) : (
+                    <Link
+                      href="/signin"
+                      className="text-primary hover:text-accent transition-colors duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign in
+                    </Link>
+                  )}
+                </div>
               </nav>
             </motion.div>
           )}

@@ -1,5 +1,6 @@
 const express = require('express');
 const { generateCode } = require('../controllers/codeController');
+const { optionalAuth } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -14,6 +15,9 @@ const codeGenerationLimiter = rateLimit({
   }
 });
 
-router.post('/generate', codeGenerationLimiter, generateCode);
+// optionalAuth, not requireAuth: generating code stays open to anonymous
+// visitors so the demo works without an account. Auto-saving to history is
+// what needs an identity, and the controller checks req.userId for that.
+router.post('/generate', codeGenerationLimiter, optionalAuth, generateCode);
 
 module.exports = router;
