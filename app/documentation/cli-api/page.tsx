@@ -11,45 +11,78 @@ export const metadata = {
 const endpoints = [
   {
     method: 'POST',
+    path: '/api/auth/register',
+    auth: 'public',
+    description: 'Create an account. Requires email and a password of at least 8 characters. Returns a token.',
+  },
+  {
+    method: 'POST',
+    path: '/api/auth/login',
+    auth: 'public',
+    description: 'Exchange email and password for a token.',
+  },
+  {
+    method: 'GET',
+    path: '/api/auth/me',
+    auth: 'required',
+    description: 'Return the signed-in user.',
+  },
+  {
+    method: 'POST',
     path: '/api/generate',
-    description: 'Generate code from a prompt. Rate limited to 10 requests per 15 minutes.',
+    auth: 'optional',
+    description:
+      'Generate code from a prompt. Works without an account; sending a token also saves the result to your history. Rate limited to 10 requests per 15 minutes.',
   },
   {
     method: 'GET',
     path: '/api/projects',
-    description: 'List saved projects. Supports page, limit, search, sortBy and sortOrder.',
+    auth: 'required',
+    description: 'List your saved projects. Supports page, limit, search, sortBy and sortOrder.',
   },
   {
     method: 'POST',
     path: '/api/projects',
+    auth: 'required',
     description: 'Save a project. Requires title, prompt and generatedCode.',
   },
   {
     method: 'GET',
     path: '/api/projects/:id',
-    description: 'Fetch a single project by id.',
+    auth: 'required',
+    description: 'Fetch one of your projects by id.',
   },
   {
     method: 'PUT',
     path: '/api/projects/:id',
-    description: 'Update an existing project.',
+    auth: 'required',
+    description: 'Update one of your projects.',
   },
   {
     method: 'DELETE',
     path: '/api/projects/:id',
-    description: 'Delete a project.',
+    auth: 'required',
+    description: 'Delete one of your projects.',
   },
   {
     method: 'PATCH',
     path: '/api/projects/:id/favorite',
-    description: 'Toggle the favourite flag on a project.',
+    auth: 'required',
+    description: 'Toggle the favourite flag on one of your projects.',
   },
   {
     method: 'GET',
     path: '/health',
+    auth: 'public',
     description: 'Service health and configuration status.',
   },
 ];
+
+const authBadge: Record<string, { label: string; className: string }> = {
+  public: { label: 'public', className: 'text-gray-400 border-gray-400/30' },
+  optional: { label: 'token optional', className: 'text-cyan-400 border-cyan-400/30' },
+  required: { label: 'token required', className: 'text-orange-400 border-orange-400/30' },
+};
 
 const methodColor: Record<string, string> = {
   GET: 'text-green-400 border-green-400/30',
@@ -84,6 +117,36 @@ export default function CliApiPage() {
         </p>
 
         <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Authentication</h2>
+          <p className="text-gray-300 mb-4">
+            Project routes are scoped to the signed-in user. Register or log in to
+            get a JSON Web Token, then send it as a bearer token. The server takes
+            your identity from that token — a <code className="text-primary">userId</code>{' '}
+            in the query string or body is ignored.
+          </p>
+          <div className="code-block mb-4">
+            <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`# 1. create an account (or POST /api/auth/login if you have one)
+curl -X POST http://localhost:5002/api/auth/register \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"you@example.com","password":"at-least-8-chars"}'
+
+# => { "success": true, "token": "eyJhbGciOi...", "user": { ... } }
+
+# 2. send it with every project request
+curl http://localhost:5002/api/projects \\
+  -H "Authorization: Bearer eyJhbGciOi..."`}</pre>
+          </div>
+          <p className="text-gray-400 text-sm">
+            Tokens last 7 days. A missing, expired or invalid token returns{' '}
+            <code className="text-primary">401 UNAUTHENTICATED</code>. Set{' '}
+            <code className="text-primary">JWT_SECRET</code> in{' '}
+            <code className="text-primary">backend/.env</code> — without it the server
+            generates a throwaway secret per process and every token stops working on
+            restart.
+          </p>
+        </section>
+
+        <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Endpoints</h2>
           <div className="space-y-3">
             {endpoints.map((endpoint) => (
@@ -100,6 +163,11 @@ export default function CliApiPage() {
                     {endpoint.method}
                   </span>
                   <code className="text-sm text-foreground font-mono">{endpoint.path}</code>
+                  <span
+                    className={`text-xs px-2 py-1 rounded border ${authBadge[endpoint.auth].className}`}
+                  >
+                    {authBadge[endpoint.auth].label}
+                  </span>
                 </div>
                 <p className="text-sm text-gray-400">{endpoint.description}</p>
               </div>
@@ -152,6 +220,11 @@ export default function CliApiPage() {
             <li><code className="text-primary">GEMINI_NOT_CONFIGURED</code> — missing API key (500)</li>
             <li><code className="text-primary">QUOTA_EXCEEDED</code> — Gemini quota exhausted (500)</li>
             <li><code className="text-primary">PROJECT_NOT_FOUND</code> — unknown project id (404)</li>
+            <li><code className="text-primary">UNAUTHENTICATED</code> — missing, expired or invalid token (401)</li>
+            <li><code className="text-primary">INVALID_CREDENTIALS</code> — wrong email or password (401)</li>
+            <li><code className="text-primary">EMAIL_TAKEN</code> — that email is already registered (409)</li>
+            <li><code className="text-primary">WEAK_PASSWORD</code> — shorter than 8 characters (400)</li>
+            <li><code className="text-primary">DATABASE_UNAVAILABLE</code> — MONGODB_URI not configured (503)</li>
           </ul>
         </section>
 
@@ -160,6 +233,7 @@ export default function CliApiPage() {
           <ul className="text-gray-300 space-y-2 list-disc list-inside">
             <li>Code generation: 10 requests per 15 minutes</li>
             <li>Project routes: 100 requests per 15 minutes</li>
+            <li>Auth (register and login): 20 requests per 15 minutes</li>
           </ul>
           <p className="text-gray-400 text-sm mt-3">
             Exceeding a limit returns HTTP 429 with a JSON message.
