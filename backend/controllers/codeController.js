@@ -87,18 +87,35 @@ const generateCode = async (req, res) => {
     let errorMessage = 'Failed to generate code';
     let errorCode = 'GENERATION_ERROR';
     
+    // Map upstream failures to something the user can act on. Matching only
+    // on the words "API key" and "quota" let Google's own 401 text — which
+    // says neither — fall through to a bare "Failed to generate code".
+    let status = 500;
+
     if (error.message.includes('Gemini API key not configured')) {
-      errorMessage = 'Gemini API key is not configured. Please add your API key to the backend .env file.';
+      errorMessage = 'Gemini API key is not configured. Add GEMINI_API_KEY to backend/.env';
       errorCode = 'GEMINI_NOT_CONFIGURED';
-    } else if (error.message.includes('API key')) {
-      errorMessage = 'Invalid Gemini API key. Please check your API key in the backend .env file.';
+    } else if (error.message.includes('(401)') || error.message.includes('API_KEY_INVALID') || error.message.includes('invalid authentication credentials')) {
+      errorMessage =
+        'Gemini rejected the API key. Check GEMINI_API_KEY in backend/.env has no quotes or trailing spaces, and that it is a key from https://aistudio.google.com/apikey';
       errorCode = 'INVALID_API_KEY';
-    } else if (error.message.includes('quota')) {
-      errorMessage = 'Gemini API quota exceeded. Please check your Gemini account billing.';
+      status = 502;
+    } else if (error.message.includes('(429)') || error.message.toLowerCase().includes('quota')) {
+      errorMessage =
+        'Gemini quota exceeded. If the limit shows as 0, the Generative Language API is probably not enabled for this key’s Google Cloud project.';
       errorCode = 'QUOTA_EXCEEDED';
+      status = 429;
+    } else if (error.message.includes('safety filters')) {
+      errorMessage = error.message;
+      errorCode = 'PROMPT_BLOCKED';
+      status = 400;
+    } else if (error.message.includes('API key')) {
+      errorMessage = 'Invalid Gemini API key. Please check your API key in backend/.env';
+      errorCode = 'INVALID_API_KEY';
+      status = 502;
     }
-    
-    res.status(500).json({
+
+    res.status(status).json({
       success: false,
       message: errorMessage,
       error: errorCode,

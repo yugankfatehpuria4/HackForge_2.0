@@ -99,13 +99,14 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ API Error:', errorData);
         
-        if (response.status === 400) {
-          throw new Error(errorData.message || 'Invalid request. Please check your input.');
-        } else if (response.status === 500) {
-          throw new Error(errorData.message || 'Server error. Please try again.');
-        } else {
-          throw new Error(`HTTP ${response.status}: ${errorData.message || 'Failed to generate code'}`);
-        }
+        // The backend always sends an actionable `message`; prefer it over a
+        // status-code-shaped string the user can do nothing with.
+        throw new Error(
+          errorData.message ||
+            (response.status === 400
+              ? 'Invalid request. Please check your input.'
+              : `Request failed (HTTP ${response.status}).`)
+        );
       }
 
       const data = await response.json();

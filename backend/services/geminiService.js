@@ -3,19 +3,34 @@
 
 class GeminiService {
   constructor() {
-    if (!process.env.GEMINI_API_KEY) {
+    // Trim whitespace and strip surrounding quotes. A key pasted with a
+    // trailing space or newline, or wrapped in quotes in the .env file,
+    // produces a malformed header and Google replies with a confusing
+    // "401 Expected OAuth 2 access token" rather than "bad API key".
+    const raw = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+
+    if (!raw) {
       console.log('⚠️  Gemini API key not provided in backend/.env file');
       this.apiKey = null;
       return;
     }
 
-    if (process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
+    if (raw === 'your_gemini_api_key_here') {
       console.log('⚠️  Please replace the placeholder Gemini API key with your actual key');
       this.apiKey = null;
       return;
     }
 
-    this.apiKey = process.env.GEMINI_API_KEY;
+    // Google AI Studio keys look like "AIza..." and are ~39 characters.
+    // Warn rather than refuse, in case the format ever changes.
+    if (!/^AIza[\w-]{30,}$/.test(raw)) {
+      console.warn(
+        `⚠️  GEMINI_API_KEY does not look like a Google AI Studio key (expected "AIza…", got "${raw.slice(0, 6)}…" of length ${raw.length}). ` +
+          'Get one at https://aistudio.google.com/apikey'
+      );
+    }
+
+    this.apiKey = raw;
     console.log('✅ Gemini service initialized successfully');
   }
 
