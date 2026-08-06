@@ -24,11 +24,11 @@ curl http://localhost:5002/health`,
 NEXT_PUBLIC_API_URL=http://localhost:5002`,
   },
   {
-    title: 'GROK_NOT_CONFIGURED',
+    title: 'AI_NOT_CONFIGURED',
     cause:
-      'XAI_API_KEY is missing, or still set to the placeholder value from the example file.',
+      'GROQ_API_KEY (or XAI_API_KEY) is missing, or still set to the placeholder value. Note that Groq (gsk_ keys) and xAI Grok (xai- keys) are different providers — using one key against the other returns "Bad credentials".',
     fix: `# backend/.env
-XAI_API_KEY=your_real_key
+GROQ_API_KEY=your_real_key
 
 # confirm it was picked up
 curl http://localhost:5002/health`,
@@ -50,7 +50,7 @@ FRONTEND_URL=http://localhost:3000`,
   {
     title: 'Generated code is cut off mid-function',
     cause:
-      'The Grok response hit the output token ceiling. The backend logs a warning when finish_reason is length.',
+      'The response hit the output token ceiling. The backend logs a warning when finish_reason is length.',
     fix: 'Ask for a smaller scope, or split the request into several prompts.',
   },
   {
@@ -89,7 +89,7 @@ export default function TroubleshootingPage() {
 
         <p className="text-gray-300 text-lg mb-10">
           Start with <code className="text-primary">/health</code> on the backend —
-          it reports whether Grok, MongoDB and Redis are actually connected.
+          it reports whether the AI provider, MongoDB and Redis are actually connected.
         </p>
 
         <div className="space-y-6">

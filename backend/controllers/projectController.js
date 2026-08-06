@@ -1,5 +1,5 @@
 const Project = require('../models/Project');
-const grokService = require('../services/grokService');
+const aiService = require('../services/aiService');
 
 // Only these fields may be sorted on. `sortBy` came straight from the query
 // string, letting callers sort by arbitrary (including non-indexed) fields.
@@ -32,7 +32,7 @@ const createProject = async (req, res) => {
       framework: framework || 'react',
       tags: tags || [],
       metadata: {
-        model: grokService.model
+        model: aiService.model
       }
     });
 

@@ -63,7 +63,7 @@ export function Footer() {
             © 2025 HackForge. All rights reserved.
           </p>
           <p className="text-muted-foreground text-sm mt-2 md:mt-0">
-            Built with ❤️ using Next.js and the Grok API
+            Built with ❤️ using Next.js and the Groq API
           </p>
         </div>
       </div>

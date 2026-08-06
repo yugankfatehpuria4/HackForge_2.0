@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const grokService = require('../services/grokService');
+const aiService = require('../services/aiService');
 const Project = require('../models/Project');
 
 const generateCode = async (req, res) => {
@@ -29,9 +29,9 @@ const generateCode = async (req, res) => {
       });
     }
 
-    console.log('🤖 Generating code with Grok...');
+    console.log('🤖 Generating code...');
     const startTime = Date.now();
-    const generatedCode = await grokService.generateCode(prompt);
+    const generatedCode = await aiService.generateCode(prompt);
     const generationTime = Date.now() - startTime;
     console.log('✅ Code generated successfully');
 
@@ -61,7 +61,7 @@ const generateCode = async (req, res) => {
           metadata: {
             tokensUsed: Math.ceil(generatedCode.length / 4), // Rough estimate
             generationTime,
-            model: grokService.model
+            model: aiService.model
           }
         });
 
@@ -92,17 +92,17 @@ const generateCode = async (req, res) => {
     // often says neither — fall through to a bare "Failed to generate code".
     let status = 500;
 
-    if (error.message.includes('Grok API key not configured')) {
-      errorMessage = 'Grok API key is not configured. Add XAI_API_KEY to backend/.env';
-      errorCode = 'GROK_NOT_CONFIGURED';
+    if (error.message.includes('AI API key not configured')) {
+      errorMessage = 'AI API key is not configured. Add GROQ_API_KEY to backend/.env';
+      errorCode = 'AI_NOT_CONFIGURED';
     } else if (error.message.includes('(401)') || error.message.includes('API_KEY_INVALID') || error.message.includes('invalid authentication credentials')) {
       errorMessage =
-        'Grok rejected the API key. Check XAI_API_KEY in backend/.env has no quotes or trailing spaces, and that it is a key from https://console.x.ai';
+        `${aiService.providerLabel} rejected the API key. Check it has no quotes or trailing spaces, and that it matches the provider (Groq keys start with "gsk_", xAI keys with "xai-").`;
       errorCode = 'INVALID_API_KEY';
       status = 502;
     } else if (error.message.includes('(429)') || error.message.toLowerCase().includes('quota')) {
       errorMessage =
-        'Grok rate limit or credit limit reached. Check your usage and billing at https://console.x.ai';
+        `${aiService.providerLabel} rate or credit limit reached. Check your usage and billing on the provider console.`;
       errorCode = 'QUOTA_EXCEEDED';
       status = 429;
     } else if (error.message.includes('safety filters')) {
@@ -110,7 +110,7 @@ const generateCode = async (req, res) => {
       errorCode = 'PROMPT_BLOCKED';
       status = 400;
     } else if (error.message.includes('API key')) {
-      errorMessage = 'Invalid Grok API key. Please check XAI_API_KEY in backend/.env';
+      errorMessage = 'Invalid AI API key. Please check the key in backend/.env';
       errorCode = 'INVALID_API_KEY';
       status = 502;
     }

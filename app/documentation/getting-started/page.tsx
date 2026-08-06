@@ -28,14 +28,14 @@ export default function GettingStartedPage() {
 
         <p className="text-gray-300 text-lg mb-10">
           HackForge runs as two processes: a Next.js frontend and an Express
-          backend that talks to the xAI Grok API.
+          backend that talks to a Groq (or xAI) chat-completions API.
         </p>
 
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Prerequisites</h2>
           <ul className="text-gray-300 space-y-2 list-disc list-inside">
             <li>Node.js 18 or newer</li>
-            <li>An xAI Grok API key from console.x.ai</li>
+            <li>A Groq API key from console.groq.com (an xAI key also works)</li>
             <li>MongoDB — optional, only needed to save projects</li>
             <li>Redis — optional, used for response caching</li>
           </ul>
@@ -69,7 +69,7 @@ cd backend && npm install && cd ..`}</pre>
           </p>
           <div className="code-block">
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`PORT=5002
-XAI_API_KEY=your_xai_api_key
+GROQ_API_KEY=your_groq_api_key
 FRONTEND_URL=http://localhost:3000
 
 # signs auth tokens — generate with:
@@ -77,7 +77,7 @@ FRONTEND_URL=http://localhost:3000
 JWT_SECRET=your_jwt_secret
 
 # optional
-GROK_MODEL=grok-3
+# AI_MODEL=llama-3.3-70b-versatile
 MONGODB_URI=mongodb://localhost:27017/hackforge
 REDIS_HOST=localhost
 REDIS_PORT=6379`}</pre>
@@ -116,7 +116,7 @@ npm run dev`}</pre>
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`curl http://localhost:5002/health`}</pre>
           </div>
           <p className="text-gray-400 text-sm mt-3">
-            <code>services.grok</code> must be <code>true</code> before code
+            <code>services.ai</code> must be <code>true</code> before code
             generation will work.
           </p>
         </section>

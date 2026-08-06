@@ -46,7 +46,7 @@ export const blogPosts: BlogPost[] = [
     body: [
       'Generating code that runs is the easy part. Generating code a team can still maintain six months later is the actual problem, and it is the one HackForge is built around.',
       'Every generation starts with a system prompt that pins down the non-negotiables: explicit error handling, no silent catch blocks, meaningful names, and comments that explain intent rather than restating the syntax. The user prompt is appended to that instruction rather than replacing it, so a vague request still produces structured output.',
-      'The request is sent to Grok with a deliberately moderate temperature. Higher values produce more inventive code and considerably more hallucinated APIs. Around 0.7 the model stays creative on structure while remaining conservative about the libraries it reaches for.',
+      'The request is sent to the model with a deliberately moderate temperature. Higher values produce more inventive code and considerably more hallucinated APIs. Around 0.7 the model stays creative on structure while remaining conservative about the libraries it reaches for.',
       'Output is capped at a token budget large enough for multi-file scaffolds. When a response is truncated the backend detects the length finish reason and surfaces a warning rather than handing back a file that stops halfway through a function.',
       'Finally, the generated source can be run through a formatting and linting pass before it reaches the editor. Formatting removes the stylistic noise that makes AI output feel foreign, and linting catches the small set of mistakes language models still make reliably: unused bindings, unreachable branches, and unsafe dynamic evaluation.',
       'None of this makes generated code correct by construction. It makes it reviewable, which is the property that actually matters when the code lands in a real repository.',
@@ -197,7 +197,7 @@ export const tutorials: Tutorial[] = [
       {
         heading: 'Start both servers',
         detail:
-          'Run npm run backend:dev and npm run dev in separate terminals, then open http://localhost:3000. Check http://localhost:5002/health first — services.grok must be true.',
+          'Run npm run backend:dev and npm run dev in separate terminals, then open http://localhost:3000. Check http://localhost:5002/health first — services.ai must be true.',
       },
       {
         heading: 'Describe the application, not the code',
@@ -337,7 +337,7 @@ export const tutorials: Tutorial[] = [
       {
         heading: 'Keep secrets server-side',
         detail:
-          'The Grok key belongs to the backend service only. Anything prefixed NEXT_PUBLIC_ is compiled into the browser bundle and is not a secret.',
+          'The AI provider key belongs to the backend service only. Anything prefixed NEXT_PUBLIC_ is compiled into the browser bundle and is not a secret.',
       },
     ],
   },

@@ -5,7 +5,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
 const { optionalAuth } = require('./middleware/auth');
-const grokService = require('./services/grokService');
+const aiService = require('./services/aiService');
 
 // Load environment variables from backend directory
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -126,7 +126,7 @@ app.get('/health', (req, res) => {
     message: 'HackForge Backend is running',
     timestamp: new Date().toISOString(),
     services: {
-      grok: grokService.isConfigured,
+      ai: aiService.isConfigured,
       cache: cacheService.isConnected,
       // readyState 1 === connected. This was previously hardcoded to false, so
       // health always reported the database as down even when it was up.
@@ -153,7 +153,7 @@ const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
   console.log(`🚀 HackForge Backend running on http://localhost:${PORT}`);
   console.log(`📡 CORS allowed origins: ${allowedOrigins.join(', ')}${process.env.NODE_ENV !== 'production' ? ' (+ any localhost/LAN origin in development)' : ''}`);
-  console.log(`🤖 Grok configured: ${grokService.isConfigured ? `Yes (${grokService.model})` : 'No - add XAI_API_KEY to backend/.env'}`);
+  console.log(`🤖 AI configured: ${aiService.isConfigured ? `Yes (${aiService.providerLabel}, ${aiService.model})` : 'No - add GROQ_API_KEY to backend/.env'}`);
   console.log(`💾 Cache: ${cacheService.enabled ? 'Redis' : 'Disabled'}`);
 });
 

@@ -210,15 +210,15 @@ curl http://localhost:5002/api/projects \\
           <div className="code-block mb-4">
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`{
   "success": false,
-  "message": "Grok API key is not configured.",
-  "error": "GROK_NOT_CONFIGURED"
+  "message": "AI API key is not configured.",
+  "error": "AI_NOT_CONFIGURED"
 }`}</pre>
           </div>
           <ul className="text-gray-300 space-y-2 list-disc list-inside text-sm">
             <li><code className="text-primary">MISSING_PROMPT</code> — no prompt supplied (400)</li>
             <li><code className="text-primary">PROMPT_TOO_SHORT</code> — fewer than 10 characters (400)</li>
-            <li><code className="text-primary">GROK_NOT_CONFIGURED</code> — missing API key (500)</li>
-            <li><code className="text-primary">QUOTA_EXCEEDED</code> — Grok rate/credit limit reached (429)</li>
+            <li><code className="text-primary">AI_NOT_CONFIGURED</code> — missing API key (500)</li>
+            <li><code className="text-primary">QUOTA_EXCEEDED</code> — provider rate/credit limit reached (429)</li>
             <li><code className="text-primary">PROJECT_NOT_FOUND</code> — unknown project id (404)</li>
             <li><code className="text-primary">UNAUTHENTICATED</code> — missing, expired or invalid token (401)</li>
             <li><code className="text-primary">INVALID_CREDENTIALS</code> — wrong email or password (401)</li>
