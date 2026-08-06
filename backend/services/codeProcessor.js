@@ -343,7 +343,7 @@ class CodeProcessor {
    * Explain code using AI (placeholder for future implementation)
    */
   async explainCode(code, framework) {
-    // This would integrate with Gemini AI to explain the code
+    // This would integrate with the Grok API to explain the code
     // For now, return a basic explanation
     return {
       summary: `This is a ${framework} application with ${this.countLines(code)} lines of code.`,

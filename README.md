@@ -7,7 +7,7 @@ Your AI-powered code generator that turns ideas into production-ready applicatio
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
-![Google Gemini](https://img.shields.io/badge/Google-Gemini-blue?logo=google)
+![xAI Grok](https://img.shields.io/badge/xAI-Grok-black?logo=x)
 
 📂 **Repository:** https://github.com/yugankfatehpuria4/HackForge_2.0
 
@@ -15,7 +15,7 @@ Your AI-powered code generator that turns ideas into production-ready applicatio
 
 ## 🎯 Overview
 
-**HackForge** is a full-stack application that combines **Next.js** on the frontend with a **Node.js + Express backend**, powered by **Google Gemini AI** to intelligently generate complete, deployable codebases from plain English prompts.  
+**HackForge** is a full-stack application that combines **Next.js** on the frontend with a **Node.js + Express backend**, powered by **xAI Grok** to intelligently generate complete, deployable codebases from plain English prompts.  
 Choose your tech stack, watch your project structure build in real time, and manage all generated code through a sleek dashboard.
 
 ---
@@ -38,7 +38,7 @@ Choose your tech stack, watch your project structure build in real time, and man
 | Layer          | Technology                                |
 |----------------|-------------------------------------------|
 | **Frontend**   | Next.js 15, TypeScript, Tailwind CSS, Shadcn/ui, Framer Motion, Sonner |
-| **Backend**    | Node.js, Express.js, MongoDB, Mongoose, Google Gemini AI, Redis, CORS |
+| **Backend**    | Node.js, Express.js, MongoDB, Mongoose, xAI Grok, JWT, Redis, CORS |
 | **Dev Tools**  | ESLint, Prettier, Nodemon                  |
 
 ---
@@ -49,7 +49,7 @@ Choose your tech stack, watch your project structure build in real time, and man
 - Node.js 18+  
 - MongoDB (local or Atlas)  
 - Redis (local or cloud)  
-- Google Gemini API key  
+- xAI Grok API key ([console.x.ai](https://console.x.ai))  
 
 ### ⚙️ Local Installation
 ```bash
@@ -71,7 +71,10 @@ NEXT_PUBLIC_API_URL=http://localhost:5002
 ### **Backend** — `backend/.env`
 ```bash
 PORT=5002
-GEMINI_API_KEY=your_gemini_api_key
+XAI_API_KEY=your_xai_api_key
+
+# Optional, defaults to grok-3
+GROK_MODEL=grok-3
 FRONTEND_URL=http://localhost:3000
 
 # Signs auth tokens. Generate one with:
@@ -107,7 +110,7 @@ npm run dev
 ```
 Visit the app at → http://localhost:3000
 
-Verify the backend is wired up correctly — `services.gemini` must be `true`
+Verify the backend is wired up correctly — `services.grok` must be `true`
 before code generation will work, and `services.database` must be `true`
 before you can create an account or save projects:
 ```bash
@@ -178,6 +181,6 @@ hackforge/
 ## 🤝 Author
 
 Built with 💚 by **Yugank Fatehpuria**  
-- AI by **Google Gemini**
+- AI by **xAI Grok**
 - UI powered by **Shadcn/ui + Tailwind CSS**
 - Hosting ready for **Netifly** & Render

@@ -5,6 +5,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
 const { optionalAuth } = require('./middleware/auth');
+const grokService = require('./services/grokService');
 
 // Load environment variables from backend directory
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -125,9 +126,7 @@ app.get('/health', (req, res) => {
     message: 'HackForge Backend is running',
     timestamp: new Date().toISOString(),
     services: {
-      gemini:
-        !!process.env.GEMINI_API_KEY &&
-        process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here',
+      grok: grokService.isConfigured,
       cache: cacheService.isConnected,
       // readyState 1 === connected. This was previously hardcoded to false, so
       // health always reported the database as down even when it was up.
@@ -154,7 +153,7 @@ const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
   console.log(`🚀 HackForge Backend running on http://localhost:${PORT}`);
   console.log(`📡 CORS allowed origins: ${allowedOrigins.join(', ')}${process.env.NODE_ENV !== 'production' ? ' (+ any localhost/LAN origin in development)' : ''}`);
-  console.log(`🤖 Gemini configured: ${!!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here' ? 'Yes' : 'No - Please add your API key'}`);
+  console.log(`🤖 Grok configured: ${grokService.isConfigured ? `Yes (${grokService.model})` : 'No - add XAI_API_KEY to backend/.env'}`);
   console.log(`💾 Cache: ${cacheService.enabled ? 'Redis' : 'Disabled'}`);
 });
 

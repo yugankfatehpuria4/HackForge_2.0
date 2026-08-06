@@ -6,7 +6,7 @@ const TOKEN_TTL = '7d';
 // Falls back to a random secret generated once at process start when
 // JWT_SECRET is unset, so auth works locally without extra setup — the same
 // "degrade with a warning" pattern the rest of the backend already uses for
-// Mongo/Redis/Gemini. This is a dev convenience only: it invalidates every
+// Mongo/Redis/Grok. This is a dev convenience only: it invalidates every
 // token on restart and must never be relied on in production, where
 // JWT_SECRET is required.
 let devSecret = null;

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const geminiService = require('../services/geminiService');
+const grokService = require('../services/grokService');
 const Project = require('../models/Project');
 
 const generateCode = async (req, res) => {
@@ -29,9 +29,9 @@ const generateCode = async (req, res) => {
       });
     }
 
-    console.log('🤖 Generating code with Gemini...');
+    console.log('🤖 Generating code with Grok...');
     const startTime = Date.now();
-    const generatedCode = await geminiService.generateCode(prompt);
+    const generatedCode = await grokService.generateCode(prompt);
     const generationTime = Date.now() - startTime;
     console.log('✅ Code generated successfully');
 
@@ -61,7 +61,7 @@ const generateCode = async (req, res) => {
           metadata: {
             tokensUsed: Math.ceil(generatedCode.length / 4), // Rough estimate
             generationTime,
-            model: 'gemini-2.0-flash'
+            model: grokService.model
           }
         });
 
@@ -88,21 +88,21 @@ const generateCode = async (req, res) => {
     let errorCode = 'GENERATION_ERROR';
     
     // Map upstream failures to something the user can act on. Matching only
-    // on the words "API key" and "quota" let Google's own 401 text — which
-    // says neither — fall through to a bare "Failed to generate code".
+    // on the words "API key" and "quota" let a provider's own 401 text — which
+    // often says neither — fall through to a bare "Failed to generate code".
     let status = 500;
 
-    if (error.message.includes('Gemini API key not configured')) {
-      errorMessage = 'Gemini API key is not configured. Add GEMINI_API_KEY to backend/.env';
-      errorCode = 'GEMINI_NOT_CONFIGURED';
+    if (error.message.includes('Grok API key not configured')) {
+      errorMessage = 'Grok API key is not configured. Add XAI_API_KEY to backend/.env';
+      errorCode = 'GROK_NOT_CONFIGURED';
     } else if (error.message.includes('(401)') || error.message.includes('API_KEY_INVALID') || error.message.includes('invalid authentication credentials')) {
       errorMessage =
-        'Gemini rejected the API key. Check GEMINI_API_KEY in backend/.env has no quotes or trailing spaces, and that it is a key from https://aistudio.google.com/apikey';
+        'Grok rejected the API key. Check XAI_API_KEY in backend/.env has no quotes or trailing spaces, and that it is a key from https://console.x.ai';
       errorCode = 'INVALID_API_KEY';
       status = 502;
     } else if (error.message.includes('(429)') || error.message.toLowerCase().includes('quota')) {
       errorMessage =
-        'Gemini quota exceeded. If the limit shows as 0, the Generative Language API is probably not enabled for this key’s Google Cloud project.';
+        'Grok rate limit or credit limit reached. Check your usage and billing at https://console.x.ai';
       errorCode = 'QUOTA_EXCEEDED';
       status = 429;
     } else if (error.message.includes('safety filters')) {
@@ -110,7 +110,7 @@ const generateCode = async (req, res) => {
       errorCode = 'PROMPT_BLOCKED';
       status = 400;
     } else if (error.message.includes('API key')) {
-      errorMessage = 'Invalid Gemini API key. Please check your API key in backend/.env';
+      errorMessage = 'Invalid Grok API key. Please check XAI_API_KEY in backend/.env';
       errorCode = 'INVALID_API_KEY';
       status = 502;
     }

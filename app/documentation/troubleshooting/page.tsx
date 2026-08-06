@@ -24,11 +24,11 @@ curl http://localhost:5002/health`,
 NEXT_PUBLIC_API_URL=http://localhost:5002`,
   },
   {
-    title: 'GEMINI_NOT_CONFIGURED',
+    title: 'GROK_NOT_CONFIGURED',
     cause:
-      'GEMINI_API_KEY is missing, or still set to the placeholder value from the example file.',
+      'XAI_API_KEY is missing, or still set to the placeholder value from the example file.',
     fix: `# backend/.env
-GEMINI_API_KEY=your_real_key
+XAI_API_KEY=your_real_key
 
 # confirm it was picked up
 curl http://localhost:5002/health`,
@@ -50,7 +50,7 @@ FRONTEND_URL=http://localhost:3000`,
   {
     title: 'Generated code is cut off mid-function',
     cause:
-      'The Gemini response hit the output token ceiling. The backend logs a warning when finishReason is MAX_TOKENS.',
+      'The Grok response hit the output token ceiling. The backend logs a warning when finish_reason is length.',
     fix: 'Ask for a smaller scope, or split the request into several prompts.',
   },
   {
@@ -89,7 +89,7 @@ export default function TroubleshootingPage() {
 
         <p className="text-gray-300 text-lg mb-10">
           Start with <code className="text-primary">/health</code> on the backend —
-          it reports whether Gemini, MongoDB and Redis are actually connected.
+          it reports whether Grok, MongoDB and Redis are actually connected.
         </p>
 
         <div className="space-y-6">

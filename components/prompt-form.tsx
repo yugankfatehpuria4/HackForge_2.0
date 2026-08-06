@@ -134,9 +134,9 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
         } else if (error.message.includes('Backend server is not running')) {
           errorMessage = 'Backend server is not running. Please start it with: npm run backend:dev';
         } else if (error.message.includes('API key')) {
-          errorMessage = 'Gemini API key is not configured. Please add GEMINI_API_KEY to backend/.env';
+          errorMessage = 'Grok API key is not configured. Please add XAI_API_KEY to backend/.env';
         } else if (error.message.includes('quota')) {
-          errorMessage = 'Gemini API quota exceeded. Please check your Google AI Studio billing.';
+          errorMessage = 'Grok rate limit reached. Please check your usage at https://console.x.ai';
         } else if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
           errorMessage = `Cannot connect to the backend at ${API_URL}. Make sure it is running.`;
         } else {

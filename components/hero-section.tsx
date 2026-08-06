@@ -23,7 +23,7 @@ export function HeroSection() {
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center space-x-2 glass-effect px-4 py-2 rounded-full">
               <Bot className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Powered by Google Gemini</span>
+              <span className="text-sm font-medium">Powered by xAI Grok</span>
             </div>
           </div>
 

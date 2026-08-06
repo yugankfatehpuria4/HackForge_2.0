@@ -28,14 +28,14 @@ export default function GettingStartedPage() {
 
         <p className="text-gray-300 text-lg mb-10">
           HackForge runs as two processes: a Next.js frontend and an Express
-          backend that talks to the Gemini API.
+          backend that talks to the xAI Grok API.
         </p>
 
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Prerequisites</h2>
           <ul className="text-gray-300 space-y-2 list-disc list-inside">
             <li>Node.js 18 or newer</li>
-            <li>A Google Gemini API key</li>
+            <li>An xAI Grok API key from console.x.ai</li>
             <li>MongoDB — optional, only needed to save projects</li>
             <li>Redis — optional, used for response caching</li>
           </ul>
@@ -69,7 +69,7 @@ cd backend && npm install && cd ..`}</pre>
           </p>
           <div className="code-block">
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`PORT=5002
-GEMINI_API_KEY=your_gemini_api_key
+XAI_API_KEY=your_xai_api_key
 FRONTEND_URL=http://localhost:3000
 
 # optional
@@ -111,7 +111,7 @@ npm run dev`}</pre>
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`curl http://localhost:5002/health`}</pre>
           </div>
           <p className="text-gray-400 text-sm mt-3">
-            <code>services.gemini</code> must be <code>true</code> before code
+            <code>services.grok</code> must be <code>true</code> before code
             generation will work.
           </p>
         </section>

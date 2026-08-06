@@ -46,7 +46,7 @@ export default function DeploymentPage() {
           <div className="code-block">
             <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`NODE_ENV=production
 PORT=10000
-GEMINI_API_KEY=...
+XAI_API_KEY=...
 MONGODB_URI=...
 FRONTEND_URL=https://your-frontend.onrender.com`}</pre>
           </div>
@@ -102,7 +102,7 @@ docker run -p 10000:10000 --env-file backend/.env hackforge-api`}</pre>
             <li>Backend: <code className="text-primary">/health</code></li>
           </ul>
           <p className="text-gray-400 text-sm mt-3">
-            The backend health payload reports whether Gemini, MongoDB and Redis
+            The backend health payload reports whether Grok, MongoDB and Redis
             are actually connected — check it first when something looks broken in
             production.
           </p>
