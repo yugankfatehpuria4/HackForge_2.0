@@ -44,7 +44,7 @@ export default function GettingStartedPage() {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Installation</h2>
           <div className="code-block">
-            <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`git clone <repository-url>
+            <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`git clone https://github.com/yugankfatehpuria4/HackForge_2.0.git
 cd HackForge_2.0
 
 # frontend dependencies
@@ -72,14 +72,19 @@ cd backend && npm install && cd ..`}</pre>
 XAI_API_KEY=your_xai_api_key
 FRONTEND_URL=http://localhost:3000
 
+# signs auth tokens — generate with:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+JWT_SECRET=your_jwt_secret
+
 # optional
+GROK_MODEL=grok-3
 MONGODB_URI=mongodb://localhost:27017/hackforge
 REDIS_HOST=localhost
 REDIS_PORT=6379`}</pre>
           </div>
           <p className="text-gray-400 text-sm mt-3">
             Without <code>MONGODB_URI</code> the app still generates code — it just
-            cannot save projects to the dashboard.
+            cannot create accounts or save projects to the dashboard.
           </p>
         </section>
 
