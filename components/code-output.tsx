@@ -395,7 +395,9 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
                             suggestOnTriggerCharacters: true,
                             quickSuggestions: true,
                             parameterHints: { enabled: true },
-                            hover: { enabled: true },
+                            // Monaco types hover.enabled as 'on' | 'off' |
+                            // 'onKeyboardModifier', not a boolean.
+                            hover: { enabled: 'on' },
                             contextmenu: true,
                             find: { addExtraSpaceOnTop: false },
                             folding: true,
@@ -435,7 +437,9 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
                       suggestOnTriggerCharacters: true,
                       quickSuggestions: true,
                       parameterHints: { enabled: true },
-                      hover: { enabled: true },
+                      // Monaco types hover.enabled as 'on' | 'off' |
+                      // 'onKeyboardModifier', not a boolean.
+                      hover: { enabled: 'on' },
                       contextmenu: true,
                       find: { addExtraSpaceOnTop: false },
                       folding: true,

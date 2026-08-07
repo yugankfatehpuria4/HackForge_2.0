@@ -125,45 +125,6 @@ const generateCode = async (req, res) => {
 };
 
 // Helper functions to extract metadata from prompt and code
-const extractLanguage = (prompt, code) => {
-  const promptLower = prompt.toLowerCase();
-  const codeLower = code.toLowerCase();
-  
-  if (promptLower.includes('python') || codeLower.includes('def ') || codeLower.includes('import ')) {
-    return 'python';
-  } else if (promptLower.includes('javascript') || promptLower.includes('js') || codeLower.includes('function ') || codeLower.includes('const ')) {
-    return 'javascript';
-  } else if (promptLower.includes('typescript') || promptLower.includes('ts') || codeLower.includes(': string') || codeLower.includes(': number')) {
-    return 'typescript';
-  } else if (promptLower.includes('react') || codeLower.includes('jsx') || codeLower.includes('react')) {
-    return 'javascript';
-  } else if (promptLower.includes('html') || codeLower.includes('<!doctype') || codeLower.includes('<html')) {
-    return 'html';
-  } else if (promptLower.includes('css') || codeLower.includes('{') && codeLower.includes(':')) {
-    return 'css';
-  } else if (promptLower.includes('java') || codeLower.includes('public class')) {
-    return 'java';
-  } else if (promptLower.includes('c++') || codeLower.includes('#include')) {
-    return 'cpp';
-  } else if (promptLower.includes('c#') || codeLower.includes('using System')) {
-    return 'csharp';
-  } else if (promptLower.includes('php') || codeLower.includes('<?php')) {
-    return 'php';
-  } else if (promptLower.includes('ruby') || codeLower.includes('def ') && codeLower.includes('end')) {
-    return 'ruby';
-  } else if (promptLower.includes('go') || codeLower.includes('package main')) {
-    return 'go';
-  } else if (promptLower.includes('rust') || codeLower.includes('fn ')) {
-    return 'rust';
-  } else if (promptLower.includes('swift') || codeLower.includes('import Swift')) {
-    return 'swift';
-  } else if (promptLower.includes('kotlin') || codeLower.includes('fun ')) {
-    return 'kotlin';
-  }
-  
-  return 'javascript'; // Default
-};
-
 const extractFramework = (prompt, code) => {
   const promptLower = prompt.toLowerCase();
   const codeLower = code.toLowerCase();

@@ -1,14 +1,19 @@
-const express = require('express');
-const cors = require('cors');
+// Load environment variables FIRST. services/aiService.js reads process.env in
+// its constructor and exports a ready-made instance, so requiring it before
+// dotenv has run left the API key permanently unset: code generation failed
+// with "AI API key not configured" no matter what backend/.env contained.
+// Nothing below this line may be moved above it.
 const dotenv = require('dotenv');
 const path = require('path');
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
 const { optionalAuth } = require('./middleware/auth');
 const aiService = require('./services/aiService');
-
-// Load environment variables from backend directory
-dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Connect to database (optional)
 try {
