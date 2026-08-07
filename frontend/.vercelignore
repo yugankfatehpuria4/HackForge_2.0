@@ -1,0 +1,6 @@
+# Vercel's "Root Directory" should be set to `frontend`, so only this directory
+# is uploaded and the Express API never reaches the build. These are the few
+# things inside it that still don't belong in a deployment.
+__tests__/
+jest.config.js
+jest.setup.js

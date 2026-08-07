@@ -4,8 +4,8 @@
 process.env.JWT_SECRET = 'test-secret-for-unit-tests';
 
 const bcrypt = require('bcryptjs');
-const { signToken, verifyToken } = require('../backend/utils/jwt');
-const { requireAuth, optionalAuth } = require('../backend/middleware/auth');
+const { signToken, verifyToken } = require('../utils/jwt');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 
 const mockRes = () => {
   const res = {};

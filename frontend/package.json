@@ -1,0 +1,59 @@
+{
+  "name": "hackforge-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HackForge web client — Next.js 15 App Router UI for the HackForge API.",
+  "license": "MIT",
+  "author": "Yugank Fatehpuria",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-select": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^10.18.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.446.0",
+    "next": "^15.0.0",
+    "next-themes": "^0.3.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "sonner": "^1.5.0",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/file-saver": "^2.0.7",
+    "@types/jest": "^30.0.0",
+    "@types/node": "24.2.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "autoprefixer": "10.4.15",
+    "eslint": "8.49.0",
+    "eslint-config-next": "15.0.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "postcss": "8.4.30",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.8.3"
+  }
+}

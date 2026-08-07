@@ -15,8 +15,7 @@ services:
     name: hackforge-frontend
     runtime: node
     plan: starter
-    # Frontend only. The root build script is deliberately just `next build` —
-    # the API is a separate service and must not be installed into this one.
+    rootDir: frontend
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /

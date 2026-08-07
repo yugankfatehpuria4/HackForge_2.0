@@ -12,58 +12,22 @@
   "engines": {
     "node": ">=18.18.0"
   },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "backend:install": "npm --prefix backend install",
-    "backend:dev": "npm --prefix backend run dev",
-    "backend:start": "npm --prefix backend start"
+  "comments": {
+    "layout": "This is a convenience wrapper only. frontend/ and backend/ are fully independent npm packages with their own lockfiles, which is what lets Vercel and Render each build one directory without the other. Deliberately NOT npm workspaces: workspaces hoist into a root node_modules, which those platforms' per-directory installs cannot see."
   },
-  "dependencies": {
-    "@monaco-editor/react": "^4.7.0",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-select": "^2.1.1",
-    "@radix-ui/react-slot": "^1.1.0",
-    "@radix-ui/react-tabs": "^1.1.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.1",
-    "file-saver": "^2.0.5",
-    "framer-motion": "^10.18.0",
-    "jszip": "^3.10.1",
-    "lucide-react": "^0.446.0",
-    "next": "^15.0.0",
-    "next-themes": "^0.3.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "sonner": "^1.5.0",
-    "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+  "scripts": {
+    "setup": "npm --prefix frontend install && npm --prefix backend install",
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
+    "dev:web": "npm --prefix frontend run dev",
+    "dev:api": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend start",
+    "start:api": "npm --prefix backend start",
+    "lint": "npm --prefix frontend run lint",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "test": "npm --prefix frontend test && npm --prefix backend test"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/file-saver": "^2.0.7",
-    "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "24.2.1",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "autoprefixer": "10.4.15",
-    "bcryptjs": "^3.0.3",
-    "eslint": "8.49.0",
-    "eslint-config-next": "15.0.0",
-    "jest": "^30.0.5",
-    "jest-environment-jsdom": "^30.0.5",
-    "jsonwebtoken": "^9.0.3",
-    "postcss": "8.4.30",
-    "tailwindcss": "3.3.3",
-    "typescript": "5.8.3"
+    "concurrently": "^9.1.2"
   }
 }

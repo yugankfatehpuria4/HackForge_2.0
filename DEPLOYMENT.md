@@ -89,9 +89,14 @@ must be `true` before accounts or saved projects work.
 
 ## 3. Frontend on Vercel
 
-Import the repo at [vercel.com/new](https://vercel.com/new). Vercel detects
-Next.js automatically; the defaults are correct because the root `build` script
-is just `next build`.
+Import the repo at [vercel.com/new](https://vercel.com/new), then **set the
+Root Directory to `frontend`** (Settings → General → Root Directory).
+
+> This is the one setting that must be changed by hand. Left at the repo root,
+> Vercel finds a `package.json` with no `next` dependency and the build fails
+> with "No Next.js version detected". Point it at `frontend` and everything
+> else — framework detection, build command, output directory — is correct
+> automatically.
 
 Set one environment variable (**Production**, **Preview**, and **Development**):
 
@@ -99,12 +104,33 @@ Set one environment variable (**Production**, **Preview**, and **Development**):
 NEXT_PUBLIC_API_URL=https://your-backend.onrender.com
 ```
 
+### The complete frontend environment
+
+That really is the whole list. The frontend reads exactly one variable —
+`process.env.NEXT_PUBLIC_API_URL` in [`frontend/lib/api.ts`](frontend/lib/api.ts)
+— and nothing else:
+
+| Variable | Required? | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | No locally, **yes in production** | Base URL of the Express API. Defaults to `http://localhost:5002`. |
+
+Anything else you may have seen in an older `.env.local` — `SENTRY_DSN`,
+`NEXT_PUBLIC_SENTRY_DSN`, `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`,
+`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — is **dead**. Sentry was
+removed, Clerk was never wired up, and Redis is backend-only. Delete them; they
+do nothing.
+
+Everything else the project needs (database, AI key, JWT secret, cache) is
+**backend** configuration and belongs in `backend/.env` or the Render dashboard.
+See [`backend/env.example`](backend/env.example).
+
 > `NEXT_PUBLIC_*` values are **inlined into the client bundle at build time**,
 > not read at runtime. Changing this variable requires a **redeploy** — a
 > restart will not pick it up. This surprises people constantly.
 
-[`.vercelignore`](.vercelignore) keeps `backend/` and the test suite out of the
-upload, so Vercel only ever builds the frontend.
+With Root Directory set, only `frontend/` is uploaded, so the API can never
+reach the build. [`frontend/.vercelignore`](frontend/.vercelignore) trims the
+test files on top of that.
 
 After the first deploy, go back to Render and set `FRONTEND_URL` to the Vercel
 URL, then redeploy the backend.
@@ -156,8 +182,8 @@ something. A failed request here is almost always CORS — the backend logs
 
 ## 6. Security notes
 
-- No secrets are committed. `.env*` files are gitignored; `env.example` and
-  `backend/env.example` document the shape only.
+- No secrets are committed. `.env*` files are gitignored; `frontend/env.example`
+  and `backend/env.example` document the shape only.
 - `JWT_SECRET` should be set via `generateValue: true` in the blueprint or
   entered in the dashboard — never in the repo.
 - Project routes derive the user id from the **verified token**, never from the

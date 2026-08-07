@@ -5,7 +5,7 @@
 // These helpers used to live inside codeController.js, so only the auto-save
 // path could reach them and they could not be tested directly. Now that they
 // are a shared module, this imports the real implementation rather than a copy.
-const { extractFramework, extractTags } = require('../backend/utils/codeMetadata');
+const { extractFramework, extractTags } = require('../utils/codeMetadata');
 
 describe('extractFramework', () => {
   it('detects the framework from the prompt', () => {

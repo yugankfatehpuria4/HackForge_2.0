@@ -158,19 +158,27 @@ for the same reason.
 ```bash
 git clone https://github.com/yugankfatehpuria4/HackForge_2.0.git
 cd HackForge_2.0
-npm install
-npm run backend:install
+npm install       # root: convenience scripts only
+npm run setup     # installs frontend/ and backend/
 ```
 
 ### Configure
 
 ```bash
-cp env.example .env.local
-cp backend/env.example backend/.env
+cp frontend/env.example frontend/.env.local
+cp backend/env.example  backend/.env
 ```
 
-At minimum, set `GROQ_API_KEY` in `backend/.env`. To enable accounts and saved
-projects, also set `MONGODB_URI` and `JWT_SECRET`:
+The **frontend** needs exactly one variable, and it already defaults to the
+value below — so you can skip its file entirely for local development:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5002
+```
+
+The **backend** is where the real configuration lives. At minimum set
+`GROQ_API_KEY`. To enable accounts and saved projects, also set `MONGODB_URI`
+and `JWT_SECRET`:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
@@ -179,9 +187,10 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ### Run
 
 ```bash
-npm run backend:dev   # API   → http://localhost:5002
-npm run dev           # Web   → http://localhost:3000
+npm run dev       # both: web → :3000, api → :5002
 ```
+
+Or start them separately with `npm run dev:web` and `npm run dev:api`.
 
 Confirm the backend wired up correctly — `services.ai` must be `true` before
 generation works, `services.database` before accounts do:
@@ -194,16 +203,21 @@ curl http://localhost:5002/health
 
 ## Scripts
 
+Run from the repo root:
+
 | Command | Description |
 |---|---|
-| `npm run dev` | Next.js dev server |
-| `npm run build` | Production build (frontend only — the API deploys separately) |
-| `npm start` | Serve the production build |
+| `npm run setup` | Install dependencies for both packages |
+| `npm run dev` | Start frontend **and** backend together |
+| `npm run dev:web` / `dev:api` | Start one side only |
+| `npm run build` | Production build of the frontend |
+| `npm start` / `start:api` | Serve the built frontend / run the API |
 | `npm run typecheck` | TypeScript, no emit |
 | `npm run lint` | ESLint |
-| `npm test` | Jest unit tests |
-| `npm run backend:dev` | API with nodemon |
-| `npm run backend:start` | API, production mode |
+| `npm test` | Both Jest suites (frontend + backend) |
+
+Each package also works standalone — `cd backend && npm run dev` behaves exactly
+as you'd expect, which is how the deploy targets build them.
 
 ---
 
@@ -236,34 +250,58 @@ curl -X POST http://localhost:5002/api/generate \
 
 ## Project Structure
 
+`frontend/` and `backend/` are **independent npm packages**, each with its own
+`package.json` and lockfile. That is what lets Vercel build one and Render build
+the other without either pulling in the other's dependencies.
+
 ```
 HackForge_2.0/
-├── app/                    # Next.js App Router — pages, layouts, error boundaries
-├── components/
-│   ├── ui/                 # shadcn/ui primitives
-│   └── *.tsx               # Feature components (prompt form, code output, header)
-├── lib/                    # API base URL, auth client, content, utils
-├── backend/
-│   ├── controllers/        # Request handlers (auth, code, projects)
-│   ├── middleware/         # JWT auth, error handler
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # Route definitions + rate limits
-│   ├── services/           # AI provider client, Redis cache
-│   ├── utils/              # JWT sign/verify
-│   └── server.js           # App entry point
-├── __tests__/              # Jest suites
-├── render.yaml             # Render blueprint (frontend + API + cache)
-└── vercel.json             # Vercel config + security headers
+├── frontend/                   # Next.js 15 web client  → Vercel
+│   ├── app/                    # App Router: pages, layouts, error boundaries
+│   ├── components/
+│   │   ├── ui/                 # shadcn/ui primitives
+│   │   └── *.tsx               # Feature components (prompt form, code output)
+│   ├── lib/                    # API base URL, auth client, content, utils
+│   ├── __tests__/              # Jest + jsdom
+│   ├── env.example             # Frontend env template
+│   ├── next.config.js
+│   └── vercel.json             # Security headers
+│
+├── backend/                    # Express REST API      → Render
+│   ├── controllers/            # Request handlers (auth, code, projects)
+│   ├── middleware/             # JWT auth, error handler
+│   ├── models/                 # Mongoose schemas
+│   ├── routes/                 # Route definitions + rate limits
+│   ├── services/               # AI provider client, Redis cache
+│   ├── utils/                  # JWT sign/verify, metadata heuristics
+│   ├── __tests__/              # Jest, node environment
+│   ├── env.example             # Backend env template
+│   └── server.js               # Entry point
+│
+├── docs/                       # Screenshots
+├── render.yaml                 # Render blueprint (both services + cache)
+├── package.json                # Convenience scripts only — runs both sides
+└── DEPLOYMENT.md
 ```
+
+> The root `package.json` holds no application code. It exists so `npm run dev`
+> starts both services at once. It is deliberately **not** an npm workspace:
+> workspaces hoist dependencies into a root `node_modules`, which Vercel's and
+> Render's per-directory installs cannot see.
 
 ---
 
 ## Testing
 
 ```bash
-npm test                # 29 tests across 4 suites
-npm run test:coverage   # with coverage
+npm test                              # both suites — 29 tests
+npm --prefix backend test             # 26 backend tests (node)
+npm --prefix frontend test            # 3 frontend tests (jsdom)
+npm --prefix backend run test:coverage
 ```
+
+The two suites are separate because they need different environments: the
+backend runs under plain Node, the frontend under jsdom via `next/jest`.
 
 Coverage focuses on the logic most likely to break silently: JWT signing and
 verification, the auth middleware's accept/reject behavior, regex escaping and

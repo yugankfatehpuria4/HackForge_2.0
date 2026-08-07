@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The repo root holds a package-lock.json for the convenience scripts, and
+  // backend/ has its own. Without this, Next walks up, finds several lockfiles
+  // and guesses the workspace root, which makes build file-tracing wrong.
+  // The frontend is self-contained: this directory is the root.
+  outputFileTracingRoot: __dirname,
   eslint: {
     ignoreDuringBuilds: true,
   },
