@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Code, Copy, Download, Save, Loader2, CheckCircle, Bookmark, BookmarkCheck, FileText, FolderOpen, Github, Package } from 'lucide-react';
+import { Code, Copy, Download, Save, Loader2, CheckCircle, Bookmark, BookmarkCheck, FileText, FolderOpen, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -29,10 +29,9 @@ interface CodeOutputProps {
   prompt: string;
   projectTitle: string;
   projectId?: string;
-  user: any;
 }
 
-export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId, user }: CodeOutputProps) {
+export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId }: CodeOutputProps) {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(!!projectId);
@@ -108,11 +107,6 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
     }
   };
 
-  const exportToGitHub = () => {
-    // This would integrate with GitHub API
-    toast.info('GitHub export coming soon!');
-  };
-
   const saveProject = async () => {
     if (!code) {
       toast.error('No code to save');
@@ -125,12 +119,13 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
       // userId is no longer sent — the backend derives it from the auth token.
       const response = await authFetch('/api/projects', {
         method: 'POST',
+        // framework and tags are deliberately omitted: the backend derives them
+        // from the prompt and the generated code. Sending 'react' here overrode
+        // that detection and mislabelled every saved project.
         body: JSON.stringify({
           title: projectTitle,
           prompt: prompt,
-          generatedCode: code,
-          framework: 'react', // Will be auto-detected by backend
-          tags: [] // Will be auto-detected by backend
+          generatedCode: code
         }),
       });
 
@@ -292,15 +287,6 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
                 title="Export as ZIP"
               >
                 <Package className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportToGitHub}
-                className="glass-effect border-white/20"
-                title="Export to GitHub"
-              >
-                <Github className="h-4 w-4" />
               </Button>
               {!isSaved && (
                 <Button

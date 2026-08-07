@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,14 +11,12 @@ import {
   Filter, 
   Star, 
   StarOff, 
-  Trash2, 
-  Edit, 
-  Eye, 
-  Code, 
+  Trash2,
+  Eye,
+  Code,
   Calendar,
   Clock,
-  Tag,
-  Languages
+  Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_URL } from '@/lib/api';

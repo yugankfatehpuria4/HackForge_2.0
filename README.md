@@ -13,7 +13,7 @@ MongoDB persistence, and Groq LLM inference — built to be deployed, not just d
 ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
 ![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-F55036)
-![Tests](https://img.shields.io/badge/tests-21%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-29%20passing-brightgreen)
 
 [Live Demo](#) · [Deployment Guide](DEPLOYMENT.md) · [Report a Bug](https://github.com/yugankfatehpuria4/HackForge_2.0/issues)
 
@@ -43,7 +43,7 @@ missing, and a deployment story that actually works on two different hosts.**
 | | |
 |---|---|
 | **~7,750** lines across frontend and backend | **23** routes, 43 pages prerendered at build |
-| **21** unit tests (Jest) | **0** TypeScript, ESLint, or build errors |
+| **29** unit tests (Jest) | **0** TypeScript, ESLint, or build errors |
 
 ---
 
@@ -261,7 +261,7 @@ HackForge_2.0/
 ## Testing
 
 ```bash
-npm test                # 21 tests across 3 suites
+npm test                # 29 tests across 4 suites
 npm run test:coverage   # with coverage
 ```
 
@@ -290,6 +290,7 @@ full walkthrough, including the two URL settings that cause most failed deploys.
 - [x] ZIP export
 - [x] Redis response caching
 - [ ] Streaming token-by-token generation
+- [ ] Push a generated project straight to a new GitHub repo
 - [ ] One-click deploy of *generated* projects
 - [ ] Usage analytics (tokens, latency, cost per generation)
 

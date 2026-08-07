@@ -1,5 +1,6 @@
 const Project = require('../models/Project');
 const aiService = require('../services/aiService');
+const { extractFramework, extractTags } = require('../utils/codeMetadata');
 
 // Only these fields may be sorted on. `sortBy` came straight from the query
 // string, letting callers sort by arbitrary (including non-indexed) fields.
@@ -24,13 +25,16 @@ const createProject = async (req, res) => {
       });
     }
 
+    // Detect rather than defaulting to 'react'. The auto-save path in
+    // codeController has always done this; a manual save hardcoded 'react', so
+    // every project saved from the Save button was mislabelled in the dashboard.
     const project = new Project({
       userId,
       title,
       prompt,
       generatedCode,
-      framework: framework || 'react',
-      tags: tags || [],
+      framework: framework || extractFramework(prompt, generatedCode),
+      tags: tags?.length ? tags : extractTags(prompt, generatedCode),
       metadata: {
         model: aiService.model
       }

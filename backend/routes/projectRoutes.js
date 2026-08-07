@@ -49,6 +49,21 @@ const projectLimiter = rateLimit({
 // Apply rate limiting to all routes
 router.use(projectLimiter);
 
+// A malformed :id (e.g. /api/projects/garbage) makes Mongoose throw a CastError
+// inside each controller's own try/catch, which turned a plain "not found" into
+// a 500. errorHandler maps CastError to 404, but it never sees it because the
+// controllers catch first. Reject the id before it reaches the database.
+router.param('id', (req, res, next, id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({
+      success: false,
+      message: 'Project not found',
+      error: 'PROJECT_NOT_FOUND'
+    });
+  }
+  next();
+});
+
 // Create a new project
 router.post('/', createProject);
 

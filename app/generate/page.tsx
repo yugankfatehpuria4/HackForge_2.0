@@ -8,8 +8,6 @@ import { CodeOutput } from '@/components/code-output';
 import { motion } from 'framer-motion';
 
 function GenerateContent() {
-  // No auth layer yet — every project is stored under a shared demo user.
-  const user = { id: 'demo-user', firstName: 'Demo User' };
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState('');
@@ -88,7 +86,6 @@ function GenerateContent() {
               prompt={currentPrompt}
               projectTitle={projectTitle}
               projectId={projectId}
-              user={user}
             />
           </motion.div>
         </div>

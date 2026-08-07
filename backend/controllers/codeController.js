@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const aiService = require('../services/aiService');
 const Project = require('../models/Project');
+const { extractFramework, extractTags } = require('../utils/codeMetadata');
 
 const generateCode = async (req, res) => {
   console.log('🎯 Code generation request received:', {
@@ -122,76 +123,6 @@ const generateCode = async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};
-
-// Helper functions to extract metadata from prompt and code
-const extractFramework = (prompt, code) => {
-  const promptLower = prompt.toLowerCase();
-  const codeLower = code.toLowerCase();
-  
-  if (promptLower.includes('react') || codeLower.includes('react') || codeLower.includes('jsx')) {
-    return 'react';
-  } else if (promptLower.includes('next.js') || promptLower.includes('nextjs') || codeLower.includes('next')) {
-    return 'nextjs';
-  } else if (promptLower.includes('vue') || codeLower.includes('vue')) {
-    return 'vue';
-  } else if (promptLower.includes('angular') || codeLower.includes('angular')) {
-    return 'angular';
-  } else if (promptLower.includes('express') || codeLower.includes('express')) {
-    return 'express';
-  } else if (promptLower.includes('django') || codeLower.includes('django')) {
-    return 'django';
-  } else if (promptLower.includes('flask') || codeLower.includes('flask')) {
-    return 'flask';
-  } else if (promptLower.includes('laravel') || codeLower.includes('laravel')) {
-    return 'laravel';
-  } else if (promptLower.includes('spring') || codeLower.includes('spring')) {
-    return 'spring';
-  } else if (promptLower.includes('fastapi') || codeLower.includes('fastapi')) {
-    return 'fastapi';
-  }
-  
-  return 'react'; // Default
-};
-
-const extractTags = (prompt, code) => {
-  const tags = [];
-  const promptLower = prompt.toLowerCase();
-  const codeLower = code.toLowerCase();
-  
-  // Common tags based on content
-  if (promptLower.includes('api') || codeLower.includes('fetch') || codeLower.includes('axios')) {
-    tags.push('api');
-  }
-  if (promptLower.includes('database') || promptLower.includes('db') || codeLower.includes('mongodb') || codeLower.includes('sql')) {
-    tags.push('database');
-  }
-  if (promptLower.includes('authentication') || promptLower.includes('auth') || codeLower.includes('login') || codeLower.includes('jwt')) {
-    tags.push('authentication');
-  }
-  if (promptLower.includes('ui') || promptLower.includes('interface') || promptLower.includes('component')) {
-    tags.push('ui');
-  }
-  if (promptLower.includes('responsive') || promptLower.includes('mobile')) {
-    tags.push('responsive');
-  }
-  if (promptLower.includes('animation') || codeLower.includes('animation') || codeLower.includes('transition')) {
-    tags.push('animation');
-  }
-  if (promptLower.includes('form') || codeLower.includes('form') || codeLower.includes('input')) {
-    tags.push('form');
-  }
-  if (promptLower.includes('todo') || promptLower.includes('task')) {
-    tags.push('todo');
-  }
-  if (promptLower.includes('ecommerce') || promptLower.includes('shop')) {
-    tags.push('ecommerce');
-  }
-  if (promptLower.includes('blog') || promptLower.includes('cms')) {
-    tags.push('blog');
-  }
-  
-  return tags;
 };
 
 module.exports = {

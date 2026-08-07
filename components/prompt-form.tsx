@@ -93,8 +93,6 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
         }),
       });
 
-      console.log('📡 Response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ API Error:', errorData);
@@ -110,8 +108,7 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
       }
 
       const data = await response.json();
-      console.log('✅ Code generation successful');
-      
+
       if (!data.success && !data.code) {
         throw new Error(data.message || 'No code was generated');
       }
