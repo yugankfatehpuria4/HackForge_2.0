@@ -9,11 +9,10 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
     ],
   },
-  // Default output: served by `next start`, which is what render.yaml and the
-  // Dockerfile both run.
-  // NOTE: do not set output: 'export' here — static export cannot run
-  // middleware.ts and makes `next start` fail. Do not set 'standalone' either
-  // unless the start command is changed to node .next/standalone/server.js.
+  // Default output: served by `next start`, which is what both render.yaml and
+  // Vercel run. Do not set output: 'standalone' unless the start command is
+  // changed to `node .next/standalone/server.js`, and do not set 'export' —
+  // static export drops the Node server these deployments rely on.
   trailingSlash: true,
   // Opening the dev server on a LAN address (e.g. http://192.168.1.4:3000)
   // otherwise logs a cross-origin warning and will be blocked outright in a

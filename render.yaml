@@ -1,51 +1,79 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploys three services: the Next.js frontend, the Express API, and a Key Value
+# (Redis-compatible) cache. Import from the Render dashboard via "New > Blueprint".
+#
+# After the first deploy, replace the two hardcoded .onrender.com URLs below with
+# the real hostnames Render assigns. Blueprints cannot interpolate one service's
+# URL into another's string value, so these must be set by hand — and
+# NEXT_PUBLIC_API_URL in particular is inlined into the client bundle at build
+# time, so changing it needs a rebuild, not just a restart.
+
 services:
-  # Frontend Service (Next.js)
+  # ── Frontend (Next.js) ────────────────────────────────────────────────
   - type: web
     name: hackforge-frontend
-    env: node
+    runtime: node
     plan: starter
-    buildCommand: npm install && npm run build
+    # Frontend only. The root build script is deliberately just `next build` —
+    # the API is a separate service and must not be installed into this one.
+    buildCommand: npm ci && npm run build
     startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_PUBLIC_API_URL
-        value: https://hackforge-backend.onrender.com
-      - key: NEXT_PUBLIC_SITE_URL
-        value: https://hackforge-frontend.onrender.com
     healthCheckPath: /
     autoDeploy: true
-
-  # Backend Service (Node.js/Express)
-  - type: web
-    name: hackforge-backend
-    env: node
-    plan: starter
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: NODE_ENV
         value: production
+      # Read at build time and baked into the client bundle.
+      - key: NEXT_PUBLIC_API_URL
+        value: https://hackforge-backend.onrender.com
+
+  # ── Backend (Express API) ─────────────────────────────────────────────
+  - type: web
+    name: hackforge-backend
+    runtime: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      # Render sets PORT itself; server.js already reads process.env.PORT.
       - key: PORT
         value: 10000
+      # CORS allow-list. Accepts a comma-separated list of origins.
       - key: FRONTEND_URL
         value: https://hackforge-frontend.onrender.com
+      # Set these in the Render dashboard — never commit them.
       - key: MONGODB_URI
         sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: ENCRYPTION_KEY
-        generateValue: true
+      # Wired automatically from the cache below. Delete this entry and the
+      # keyvalue service to run without a cache — cacheService.js degrades to
+      # no-ops when REDIS_URL is unset.
       - key: REDIS_URL
-        sync: false
-    healthCheckPath: /health
-    autoDeploy: true
+        fromService:
+          type: keyvalue
+          name: hackforge-cache
+          property: connectionString
 
-  # Redis Cache Service (Optional)
-  - type: redis
-    name: hackforge-redis
+  # ── Cache (Redis-compatible Key Value) ────────────────────────────────
+  # `keyvalue` is the current type; `redis` is the deprecated alias.
+  # ipAllowList is required here; an empty list means "reachable only from
+  # inside the Render network", which is all the backend needs.
+  # `plan: free` also works for a cache this small.
+  - type: keyvalue
+    name: hackforge-cache
     plan: starter
     maxmemoryPolicy: allkeys-lru
-    autoDeploy: true
+    ipAllowList: []

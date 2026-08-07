@@ -1,0 +1,10 @@
+# Vercel hosts the Next.js frontend only. The Express API is a separate
+# deployment (see render.yaml), so there is no reason to upload it here.
+backend/
+
+__tests__/
+jest.config.js
+jest.setup.js
+
+DEPLOYMENT.md
+docs/
