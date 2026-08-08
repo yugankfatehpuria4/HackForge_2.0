@@ -10,7 +10,7 @@
     "url": "https://github.com/yugankfatehpuria4/HackForge_2.0.git"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": "22.x"
   },
   "comments": {
     "layout": "This is a convenience wrapper only. frontend/ and backend/ are fully independent npm packages with their own lockfiles, which is what lets Vercel and Render each build one directory without the other. Deliberately NOT npm workspaces: workspaces hoist into a root node_modules, which those platforms' per-directory installs cannot see."
