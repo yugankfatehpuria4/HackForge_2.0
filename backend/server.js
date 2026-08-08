@@ -142,6 +142,24 @@ if (cacheService.enabled) {
 app.use('/api', require('./routes/codeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 
+// Root route. Express answers an unrouted GET / with a bare "Cannot GET /"
+// HTML page, which reads like a broken deployment when someone opens the API's
+// public URL. This is an API with no web UI, so say that plainly and point at
+// the endpoints that do exist.
+app.get('/', (req, res) => {
+  res.json({
+    name: 'HackForge API',
+    status: 'ok',
+    message: 'This is the backend API. The web app is a separate deployment.',
+    endpoints: {
+      health: '/health',
+      generate: 'POST /api/generate',
+      projects: '/api/projects  (requires a Clerk session token)'
+    },
+    docs: 'https://github.com/yugankfatehpuria4/HackForge_2.0#api-reference'
+  });
+});
+
 // Health check with enhanced status
 app.get('/health', (req, res) => {
   res.json({
