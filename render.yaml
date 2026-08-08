@@ -28,6 +28,18 @@ services:
       # Read at build time and baked into the client bundle.
       - key: NEXT_PUBLIC_API_URL
         value: https://hackforge-backend.onrender.com
+      # Clerk. Both are read at BUILD time by Next.js, so changing either one
+      # requires a rebuild rather than a restart. Set them in the dashboard —
+      # use pk_live_… / sk_live_… from a Clerk production instance here, not
+      # the pk_test_… development keys.
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /signin
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /signup
 
   # ── Backend (Express API) ─────────────────────────────────────────────
   - type: web
@@ -55,8 +67,11 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
-      - key: JWT_SECRET
-        generateValue: true
+      # Verifies the Clerk session tokens the frontend sends. Must be the SAME
+      # secret key the frontend service uses, or every request reads as signed
+      # out and the project routes answer 401.
+      - key: CLERK_SECRET_KEY
+        sync: false
       # Wired automatically from the cache below. Delete this entry and the
       # keyvalue service to run without a cache — cacheService.js degrades to
       # no-ops when REDIS_URL is unset.

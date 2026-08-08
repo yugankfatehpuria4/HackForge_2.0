@@ -13,7 +13,7 @@ MongoDB persistence, and Groq LLM inference — built to be deployed, not just d
 ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
 ![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-F55036)
-![Tests](https://img.shields.io/badge/tests-29%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-22%20passing-brightgreen)
 
 [Live Demo](#) · [Deployment Guide](DEPLOYMENT.md) · [Report a Bug](https://github.com/yugankfatehpuria4/HackForge_2.0/issues)
 
@@ -43,7 +43,7 @@ missing, and a deployment story that actually works on two different hosts.**
 | | |
 |---|---|
 | **~7,750** lines across frontend and backend | **23** routes, 43 pages prerendered at build |
-| **29** unit tests (Jest) | **0** TypeScript, ESLint, or build errors |
+| **22** unit tests (Jest) | **0** TypeScript, ESLint, or build errors |
 
 ---
 
@@ -52,7 +52,7 @@ missing, and a deployment story that actually works on two different hosts.**
 - **AI code generation** — describe an app, pick a stack, get working code. Powered by Groq's `llama-3.3-70b-versatile` (xAI Grok also supported).
 - **In-browser editing** — generated files open in Monaco (the editor behind VS Code) with syntax highlighting, folding, and multi-file tabs.
 - **Project dashboard** — search, sort, favorite, and delete saved generations.
-- **JWT authentication** — email/password accounts; every project is scoped to its owner.
+- **Clerk authentication** — hosted sign-in with email and Google OAuth; every project is scoped to its owner by verified Clerk user id.
 - **Export** — copy to clipboard, download a single file, or download the whole project as a ZIP.
 - **Redis caching** — authenticated GET responses are cached per user for 60s.
 - **Graceful degradation** — missing Mongo, Redis, or an AI key never crashes the server; each subsystem reports its own status and fails with an actionable message.
@@ -67,8 +67,8 @@ flowchart LR
 
     subgraph API["Express API"]
         direction TB
-        MW["CORS · rate limit<br/>JWT auth · cache"]
-        RT["/api/generate<br/>/api/auth/*<br/>/api/projects/*"]
+        MW["CORS · rate limit<br/>Clerk auth · cache"]
+        RT["/api/generate<br/>/api/projects/*"]
         MW --> RT
     end
 
@@ -97,8 +97,8 @@ a multi-second tail. Splitting them lets each scale and deploy on its own.
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | Next.js 15 (App Router), TypeScript (strict), Tailwind CSS, shadcn/ui, Radix UI, Framer Motion, Monaco Editor, Sonner |
-| **Backend** | Node.js, Express 4, Mongoose 7, jsonwebtoken, bcryptjs, express-rate-limit, ioredis |
+| **Frontend** | Next.js 15 (App Router), TypeScript (strict), Tailwind CSS, shadcn/ui, Radix UI, Framer Motion, Monaco Editor, Sonner, @clerk/nextjs |
+| **Backend** | Node.js, Express 4, Mongoose 7, @clerk/express, express-rate-limit, ioredis |
 | **Data & AI** | MongoDB Atlas, Redis, Groq (`llama-3.3-70b-versatile`) / xAI Grok |
 | **Tooling** | Jest, Testing Library, ESLint, TypeScript compiler |
 | **Deployment** | Vercel (frontend), Render (API + Key Value cache) |
@@ -112,8 +112,11 @@ Notes on the non-obvious choices — the parts worth discussing in an interview.
 **Identity comes from the token, never the request.**
 Project routes originally read `userId` from `req.body` / `req.query`, so anyone
 who guessed another user's id could read, edit, or delete their projects.
-`requireAuth` now derives it from a verified JWT and the controllers refuse to
-accept it from the request at all.
+`requireAuth` now derives it from the verified Clerk session and the controllers
+refuse to accept it from the request at all. The frontend and API sit on
+different origins, so Clerk's session cookie is not sent automatically — the
+client attaches the session token as a bearer header and `@clerk/express`
+verifies it server-side.
 
 **Environment loading order is load-bearing.**
 `aiService.js` reads `process.env` in its constructor and exports a ready-made
@@ -129,14 +132,17 @@ list to a different user requesting the same path. `optionalAuth` runs before th
 cache middleware so the key can include the user id.
 
 **Every dependency is optional except the AI key.**
-Missing Mongo, Redis, or `JWT_SECRET` degrades to a documented fallback with a
-startup warning rather than a crash — you can clone the repo and generate code
-with nothing but a Groq key. Routes that genuinely need the database fail fast
-with `503` instead of hanging for Mongoose's 10s buffering timeout.
+Missing Mongo, Redis, or Clerk degrades to a documented fallback with a startup
+warning rather than a crash — you can clone the repo and generate code with
+nothing but a Groq key. `/health` reports each subsystem separately, so a broken
+deploy tells you *which* piece is down. Routes that genuinely need the database
+fail fast with `503` instead of hanging for Mongoose's 10s buffering timeout.
 
-**Timing-safe-ish auth responses.**
-Login returns an identical error whether the email is unknown or the password is
-wrong, so the endpoint can't be used to enumerate registered accounts.
+**Auth is delegated, verification is not.**
+Clerk owns registration, sign-in, sessions and password reset — the API never
+sees a credential and stores no password hashes. What the API does keep is the
+verification step: every protected route re-checks the session token server-side
+rather than trusting anything the client asserts about who it is.
 
 **Search input is escaped before it reaches a regex.**
 An unbalanced `(` typed into the dashboard search box used to reach
@@ -150,7 +156,8 @@ for the same reason.
 ### Prerequisites
 
 - Node.js 18.18+
-- A Groq API key — [console.groq.com/keys](https://console.groq.com/keys) *(required)*
+- A Groq API key — [console.groq.com/keys](https://console.groq.com/keys) *(required to generate code)*
+- A Clerk application — [dashboard.clerk.com](https://dashboard.clerk.com) *(required to sign in)*
 - MongoDB and Redis *(both optional — the app runs without them)*
 
 ### Install
@@ -169,20 +176,26 @@ cp frontend/env.example frontend/.env.local
 cp backend/env.example  backend/.env
 ```
 
-The **frontend** needs exactly one variable, and it already defaults to the
-value below — so you can skip its file entirely for local development:
+**Frontend** (`frontend/.env.local`) — the API URL already defaults to
+localhost, so in practice this file is about Clerk:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:5002
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
 ```
 
-The **backend** is where the real configuration lives. At minimum set
-`GROQ_API_KEY`. To enable accounts and saved projects, also set `MONGODB_URI`
-and `JWT_SECRET`:
+**Backend** (`backend/.env`) — set `GROQ_API_KEY` to generate code, and
+`MONGODB_URI` plus the *same* `CLERK_SECRET_KEY` to save projects:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+GROQ_API_KEY=gsk_...
+MONGODB_URI=mongodb+srv://...
+CLERK_SECRET_KEY=sk_test_...
 ```
+
+> Both sides need `CLERK_SECRET_KEY`, and it must be the same value: Next.js
+> uses it for middleware, and the API uses it to verify the session tokens the
+> frontend sends. Mismatch them and every request reads as signed out.
 
 ### Run
 
@@ -229,9 +242,6 @@ Base URL: `http://localhost:5002`
 |---|---|---|---|
 | `GET` | `/health` | — | Service status for AI, cache, and database |
 | `POST` | `/api/generate` | optional | Generate code; saves to history when signed in |
-| `POST` | `/api/auth/register` | — | Create an account |
-| `POST` | `/api/auth/login` | — | Exchange credentials for a 7-day token |
-| `GET` | `/api/auth/me` | required | Current user |
 | `GET` | `/api/projects` | required | List projects (search, sort, paginate) |
 | `POST` | `/api/projects` | required | Create a project |
 | `GET` | `/api/projects/:id` | required | Fetch one project |
@@ -269,11 +279,11 @@ HackForge_2.0/
 │
 ├── backend/                    # Express REST API      → Render
 │   ├── controllers/            # Request handlers (auth, code, projects)
-│   ├── middleware/             # JWT auth, error handler
+│   ├── middleware/             # Clerk auth, error handler
 │   ├── models/                 # Mongoose schemas
 │   ├── routes/                 # Route definitions + rate limits
 │   ├── services/               # AI provider client, Redis cache
-│   ├── utils/                  # JWT sign/verify, metadata heuristics
+│   ├── utils/                  # Metadata heuristics
 │   ├── __tests__/              # Jest, node environment
 │   ├── env.example             # Backend env template
 │   └── server.js               # Entry point
@@ -294,8 +304,8 @@ HackForge_2.0/
 ## Testing
 
 ```bash
-npm test                              # both suites — 29 tests
-npm --prefix backend test             # 26 backend tests (node)
+npm test                              # both suites — 22 tests
+npm --prefix backend test             # 19 backend tests (node)
 npm --prefix frontend test            # 3 frontend tests (jsdom)
 npm --prefix backend run test:coverage
 ```
@@ -303,9 +313,11 @@ npm --prefix backend run test:coverage
 The two suites are separate because they need different environments: the
 backend runs under plain Node, the frontend under jsdom via `next/jest`.
 
-Coverage focuses on the logic most likely to break silently: JWT signing and
-verification, the auth middleware's accept/reject behavior, regex escaping and
-sort-field validation in the project query layer, and API URL construction.
+Coverage focuses on the logic most likely to break silently: the auth
+middleware's accept/reject behaviour (including that it ignores a client-supplied
+`userId`), framework and tag detection, regex escaping and sort-field validation
+in the project query layer, and API URL construction. Token verification itself
+is Clerk's and is mocked rather than re-tested.
 
 ---
 
@@ -323,7 +335,7 @@ full walkthrough, including the two URL settings that cause most failed deploys.
 
 ## Roadmap
 
-- [x] JWT authentication with per-user project isolation
+- [x] Clerk authentication with per-user project isolation
 - [x] Multi-file editing with Monaco
 - [x] ZIP export
 - [x] Redis response caching

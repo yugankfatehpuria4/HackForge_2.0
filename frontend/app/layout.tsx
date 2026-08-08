@@ -1,9 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import { ClerkProvider } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/components/auth-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetbrainsMono = JetBrains_Mono({ 
@@ -25,17 +26,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange={false}
-        >
-          <AuthProvider>
+        {/* The app is dark-only (ThemeProvider pins defaultTheme="dark" with
+            enableSystem off), so Clerk's own UI is pinned to its dark theme to
+            match rather than rendering a white card on a black page.
+            afterSignOutUrl lives here in Clerk Core 3 — it was removed from
+            <UserButton>. */}
+        <ClerkProvider appearance={{ theme: dark }} afterSignOutUrl="/">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange={false}
+          >
             {children}
             <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

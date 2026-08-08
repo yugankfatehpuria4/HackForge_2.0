@@ -1,140 +1,114 @@
 /**
  * @jest-environment node
  */
-process.env.JWT_SECRET = 'test-secret-for-unit-tests';
 
-const bcrypt = require('bcryptjs');
-const { signToken, verifyToken } = require('../utils/jwt');
+// Clerk owns token verification now, so there is nothing left to unit test
+// about signing or decoding. What still matters — and what these cover — is the
+// contract the rest of the API depends on: requireAuth blocks anonymous
+// callers, optionalAuth never does, and req.userId comes from the verified
+// session rather than anything the client sent.
+
+jest.mock('@clerk/express', () => ({ getAuth: jest.fn() }));
+
+const { getAuth } = require('@clerk/express');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 
-const mockRes = () => {
+const makeRes = () => {
   const res = {};
-  res.status = jest.fn(() => res);
-  res.json = jest.fn(() => res);
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
   return res;
 };
 
-describe('jwt', () => {
-  it('round-trips the user id', () => {
-    const token = signToken('507f1f77bcf86cd799439011');
-    expect(verifyToken(token).sub).toBe('507f1f77bcf86cd799439011');
-  });
-
-  it('rejects a tampered token', () => {
-    const token = signToken('user-a');
-    // Flip the payload segment; the signature no longer matches.
-    const [h, , s] = token.split('.');
-    const forged = `${h}.${Buffer.from(JSON.stringify({ sub: 'user-b' })).toString('base64url')}.${s}`;
-    expect(verifyToken(forged)).toBeNull();
-  });
-
-  it('rejects garbage and empty input', () => {
-    expect(verifyToken('not-a-token')).toBeNull();
-    expect(verifyToken('')).toBeNull();
-    expect(verifyToken(undefined)).toBeNull();
-  });
-
-  it('rejects a token signed with a different secret', () => {
-    const jwt = require('jsonwebtoken');
-    expect(verifyToken(jwt.sign({ sub: 'x' }, 'some-other-secret'))).toBeNull();
-  });
-
-  it('rejects an expired token', () => {
-    const jwt = require('jsonwebtoken');
-    const expired = jwt.sign({ sub: 'x' }, process.env.JWT_SECRET, { expiresIn: -10 });
-    expect(verifyToken(expired)).toBeNull();
-  });
-});
+beforeEach(() => jest.clearAllMocks());
 
 describe('requireAuth', () => {
-  it('sets req.userId for a valid Bearer token', () => {
-    const req = { headers: { authorization: `Bearer ${signToken('abc123')}` } };
-    const res = mockRes();
+  it('passes through and sets req.userId for a signed-in caller', () => {
+    getAuth.mockReturnValue({ userId: 'user_123' });
+    const req = {};
+    const res = makeRes();
     const next = jest.fn();
 
     requireAuth(req, res, next);
 
     expect(next).toHaveBeenCalled();
-    expect(req.userId).toBe('abc123');
+    expect(req.userId).toBe('user_123');
     expect(res.status).not.toHaveBeenCalled();
   });
 
-  it('401s with no header', () => {
-    const res = mockRes();
+  it('rejects an anonymous caller with 401', () => {
+    getAuth.mockReturnValue({ userId: null });
+    const req = {};
+    const res = makeRes();
     const next = jest.fn();
 
-    requireAuth({ headers: {} }, res, next);
+    requireAuth(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json.mock.calls[0][0].error).toBe('UNAUTHENTICATED');
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false, error: 'UNAUTHENTICATED' })
+    );
   });
 
-  it('401s on a forged token instead of trusting it', () => {
-    const res = mockRes();
+  it('rejects rather than throwing when clerkMiddleware has not run', () => {
+    getAuth.mockImplementation(() => {
+      throw new Error('clerkMiddleware is required');
+    });
+    const req = {};
+    const res = makeRes();
     const next = jest.fn();
 
-    requireAuth({ headers: { authorization: 'Bearer forged.token.here' } }, res, next);
-
+    expect(() => requireAuth(req, res, next)).not.toThrow();
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(next).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(401);
   });
 
-  it('ignores a non-Bearer scheme', () => {
-    const res = mockRes();
-    const next = jest.fn();
-
-    requireAuth({ headers: { authorization: `Basic ${signToken('abc')}` } }, res, next);
-
-    expect(res.status).toHaveBeenCalledWith(401);
-  });
-
-  it('cannot be spoofed by a body/query userId', () => {
-    // The whole point of the change: identity comes from the token only.
-    const req = { headers: {}, body: { userId: 'victim' }, query: { userId: 'victim' } };
-    const res = mockRes();
+  it('ignores a userId supplied by the client', () => {
+    getAuth.mockReturnValue({ userId: 'user_real' });
+    // A caller trying to act as someone else.
+    const req = { body: { userId: 'user_victim' }, query: { userId: 'user_victim' } };
+    const res = makeRes();
 
     requireAuth(req, res, jest.fn());
 
-    expect(req.userId).toBeUndefined();
-    expect(res.status).toHaveBeenCalledWith(401);
+    expect(req.userId).toBe('user_real');
   });
 });
 
 describe('optionalAuth', () => {
-  it('populates req.userId when signed in', () => {
-    const req = { headers: { authorization: `Bearer ${signToken('u1')}` } };
+  it('sets req.userId when signed in', () => {
+    getAuth.mockReturnValue({ userId: 'user_abc' });
+    const req = {};
     const next = jest.fn();
 
-    optionalAuth(req, mockRes(), next);
+    optionalAuth(req, makeRes(), next);
 
-    expect(req.userId).toBe('u1');
+    expect(req.userId).toBe('user_abc');
     expect(next).toHaveBeenCalled();
   });
 
-  it('lets anonymous callers through with no userId', () => {
-    const req = { headers: {} };
+  it('continues without a userId when signed out', () => {
+    getAuth.mockReturnValue({ userId: null });
+    const req = {};
+    const res = makeRes();
     const next = jest.fn();
 
-    optionalAuth(req, mockRes(), next);
+    optionalAuth(req, res, next);
 
     expect(req.userId).toBeUndefined();
     expect(next).toHaveBeenCalled();
-  });
-});
-
-describe('password hashing', () => {
-  it('does not store the plaintext and verifies correctly', async () => {
-    const hash = await bcrypt.hash('correct horse battery', 10);
-
-    expect(hash).not.toContain('correct horse battery');
-    await expect(bcrypt.compare('correct horse battery', hash)).resolves.toBe(true);
-    await expect(bcrypt.compare('wrong password', hash)).resolves.toBe(false);
+    expect(res.status).not.toHaveBeenCalled();
   });
 
-  it('salts — the same password hashes differently each time', async () => {
-    const a = await bcrypt.hash('same-password', 10);
-    const b = await bcrypt.hash('same-password', 10);
-    expect(a).not.toBe(b);
+  it('continues when getAuth throws', () => {
+    getAuth.mockImplementation(() => {
+      throw new Error('clerkMiddleware is required');
+    });
+    const req = {};
+    const next = jest.fn();
+
+    expect(() => optionalAuth(req, makeRes(), next)).not.toThrow();
+    expect(next).toHaveBeenCalled();
   });
 });

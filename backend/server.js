@@ -11,9 +11,18 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const { clerkMiddleware } = require('@clerk/express');
 const errorHandler = require('./middleware/errorHandler');
 const { optionalAuth } = require('./middleware/auth');
 const aiService = require('./services/aiService');
+
+// Clerk reads CLERK_SECRET_KEY from the environment. Without it, every request
+// looks signed out and the API is effectively read-only — worth saying loudly
+// at boot rather than leaving it to be discovered as a wall of 401s.
+const clerkConfigured = !!process.env.CLERK_SECRET_KEY;
+if (!clerkConfigured) {
+  console.log('⚠️  CLERK_SECRET_KEY not set — every request will be treated as signed out');
+}
 
 // Connect to database (optional)
 try {
@@ -68,6 +77,13 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Verify the Clerk session token on every request and attach the auth object.
+// This must run before any route or middleware that calls getAuth(), which
+// includes the cache key below and both auth middlewares. It never rejects a
+// request on its own — signed-out callers simply get a null userId, and the
+// routes that require a user enforce that themselves.
+app.use(clerkMiddleware());
+
 // Add request logging with performance tracking
 app.use((req, res, next) => {
   const start = Date.now();
@@ -119,8 +135,10 @@ if (cacheService.enabled) {
   });
 }
 
-// Routes
-app.use('/api/auth', require('./routes/authRoutes'));
+// Routes.
+// There is no /api/auth router any more: Clerk owns registration, sign-in,
+// sessions and profile, so the API only ever consumes an already-verified
+// session token.
 app.use('/api', require('./routes/codeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 
@@ -135,7 +153,8 @@ app.get('/health', (req, res) => {
       cache: cacheService.isConnected,
       // readyState 1 === connected. This was previously hardcoded to false, so
       // health always reported the database as down even when it was up.
-      database: mongoose.connection.readyState === 1
+      database: mongoose.connection.readyState === 1,
+      auth: clerkConfigured
     },
     environment: process.env.NODE_ENV || 'development'
   });
@@ -160,6 +179,7 @@ app.listen(PORT, () => {
   console.log(`📡 CORS allowed origins: ${allowedOrigins.join(', ')}${process.env.NODE_ENV !== 'production' ? ' (+ any localhost/LAN origin in development)' : ''}`);
   console.log(`🤖 AI configured: ${aiService.isConfigured ? `Yes (${aiService.providerLabel}, ${aiService.model})` : 'No - add GROQ_API_KEY to backend/.env'}`);
   console.log(`💾 Cache: ${cacheService.enabled ? 'Redis' : 'Disabled'}`);
+  console.log(`🔐 Auth: ${clerkConfigured ? 'Clerk' : 'Not configured — add CLERK_SECRET_KEY to backend/.env'}`);
 });
 
 // Without these, a rejected promise or thrown error anywhere in the app takes

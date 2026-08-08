@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_URL } from '@/lib/api';
-import { authFetch } from '@/lib/auth-client';
-import { useAuth } from '@/components/auth-provider';
+import { useApi } from '@/lib/use-api';
+import { useUser } from '@clerk/nextjs';
 import { Header } from '@/components/header';
 import Link from 'next/link';
 
@@ -70,7 +70,8 @@ export default function Dashboard() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   // Distinguishes "you have no projects yet" from "we could not load them".
   const [loadError, setLoadError] = useState<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoaded: authLoaded } = useUser();
+  const { apiFetch } = useApi();
 
   // Fetch projects
   const fetchProjects = async () => {
@@ -84,7 +85,7 @@ export default function Dashboard() {
         ...(debouncedSearch && { search: debouncedSearch })
       });
 
-      const response = await authFetch(`/api/projects?${params}`);
+      const response = await apiFetch(`/api/projects?${params}`);
       const data = await response.json().catch(() => null);
 
       if (!response.ok || !data?.success) {
@@ -119,7 +120,7 @@ export default function Dashboard() {
   // Toggle favorite
   const toggleFavorite = async (projectId: string) => {
     try {
-      const response = await authFetch(`/api/projects/${projectId}/favorite`, {
+      const response = await apiFetch(`/api/projects/${projectId}/favorite`, {
         method: 'PATCH',
         body: JSON.stringify({})
       });
@@ -150,7 +151,7 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const response = await authFetch(`/api/projects/${projectId}`, {
+      const response = await apiFetch(`/api/projects/${projectId}`, {
         method: 'DELETE'
       });
 
@@ -234,7 +235,7 @@ export default function Dashboard() {
   // Wait for the auth check before fetching — firing while it is still
   // resolving would send an anonymous request and get a guaranteed 401.
   useEffect(() => {
-    if (authLoading) return;
+    if (!authLoaded) return;
 
     if (!user) {
       setLoading(false);
@@ -243,7 +244,7 @@ export default function Dashboard() {
 
     fetchProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, debouncedSearch, sortBy, sortOrder, pagination.page]);
+  }, [authLoaded, user, debouncedSearch, sortBy, sortOrder, pagination.page]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -301,7 +302,7 @@ export default function Dashboard() {
         </MotionDiv>
 
         {/* Projects Grid */}
-        {authLoading || loading ? (
+        {!authLoaded || loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
           </div>

@@ -26,10 +26,10 @@ an outbound AI call. The frontend reaches the API through `NEXT_PUBLIC_API_URL`.
 - A **Groq API key** from [console.groq.com/keys](https://console.groq.com/keys)
   (keys start with `gsk_`). xAI keys (`xai-`) also work — the provider is
   detected from the key prefix.
-- A **JWT secret**. Generate one with:
-  ```bash
-  node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-  ```
+- A **Clerk application** from [dashboard.clerk.com](https://dashboard.clerk.com).
+  Create a **production** instance for a real deploy — development instances
+  issue `pk_test_…` / `sk_test_…` keys, show a "Development mode" badge in the
+  sign-in card, and are rate limited.
 
 In Atlas, add `0.0.0.0/0` to the network access list — Render does not publish
 static egress IPs on its lower tiers.
@@ -60,7 +60,7 @@ NODE_ENV=production
 FRONTEND_URL=https://your-frontend-url        # exact origin, no trailing slash
 MONGODB_URI=mongodb+srv://...
 GROQ_API_KEY=gsk_...
-JWT_SECRET=<64+ random hex chars>
+CLERK_SECRET_KEY=sk_live_...                  # same value as the frontend
 REDIS_URL=redis://...                         # optional; cache no-ops without it
 ```
 
@@ -98,31 +98,35 @@ Root Directory to `frontend`** (Settings → General → Root Directory).
 > else — framework detection, build command, output directory — is correct
 > automatically.
 
-Set one environment variable (**Production**, **Preview**, and **Development**):
+Set these environment variables (**Production**, **Preview**, and **Development**):
 
 ```bash
 NEXT_PUBLIC_API_URL=https://your-backend.onrender.com
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/signin
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
 ```
 
 ### The complete frontend environment
 
-That really is the whole list. The frontend reads exactly one variable —
-`process.env.NEXT_PUBLIC_API_URL` in [`frontend/lib/api.ts`](frontend/lib/api.ts)
-— and nothing else:
+That is the whole list — five variables, and only Clerk's two secrets really
+matter:
 
 | Variable | Required? | Purpose |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | No locally, **yes in production** | Base URL of the Express API. Defaults to `http://localhost:5002`. |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Yes** | Clerk client key. Safe to expose. |
+| `CLERK_SECRET_KEY` | **Yes** | Server-only. Used by Next.js middleware; never enters the client bundle. |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Recommended | `/signin`. Without it, protected routes redirect to Clerk's hosted portal instead of the in-app page. |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Recommended | `/signup`. Same reasoning. |
 
-Anything else you may have seen in an older `.env.local` — `SENTRY_DSN`,
-`NEXT_PUBLIC_SENTRY_DSN`, `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`,
-`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — is **dead**. Sentry was
-removed, Clerk was never wired up, and Redis is backend-only. Delete them; they
-do nothing.
+`SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` and `REDIS_*` are **not** frontend
+variables — Sentry was removed and Redis is backend-only. Delete them if you
+still have them; they do nothing.
 
-Everything else the project needs (database, AI key, JWT secret, cache) is
-**backend** configuration and belongs in `backend/.env` or the Render dashboard.
-See [`backend/env.example`](backend/env.example).
+Everything else the project needs (database, AI key, cache) is **backend**
+configuration — see [`backend/env.example`](backend/env.example).
 
 > `NEXT_PUBLIC_*` values are **inlined into the client bundle at build time**,
 > not read at runtime. Changing this variable requires a **redeploy** — a
@@ -154,10 +158,9 @@ curl -X POST https://your-backend.onrender.com/api/generate \
   -H 'Content-Type: application/json' \
   -d '{"prompt":"A JavaScript function that adds two numbers.","saveToHistory":false}'
 
-# 3. Accounts work (needs MONGODB_URI)
-curl -X POST https://your-backend.onrender.com/api/auth/register \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"you@example.com","password":"at-least-8-chars"}'
+# 3. Project routes reject anonymous callers (Clerk is wired up)
+#    401 here is the CORRECT answer — accounts live in Clerk, not this API.
+curl -i https://your-backend.onrender.com/api/projects
 ```
 
 Then load the frontend, open the browser devtools **Network** tab, and generate
@@ -174,7 +177,8 @@ something. A failed request here is almost always CORS — the backend logs
 | Requests go to `undefined/api/...` | `NEXT_PUBLIC_API_URL` unset at **build** time | Set it in Vercel and **redeploy** |
 | `AI API key is not configured` | `GROQ_API_KEY` unset, or still the placeholder | Set a real `gsk_…` / `xai-…` key |
 | `Database is not connected` (503) | `MONGODB_URI` unset or Atlas IP allow-list blocking | Set the URI; allow `0.0.0.0/0` in Atlas |
-| Signed out after every deploy | `JWT_SECRET` unset, so a random one is generated per process | Set a fixed `JWT_SECRET` |
+| Every request reads as signed out / constant 401 | `CLERK_SECRET_KEY` missing or different between the two services | Set the **same** secret key on both, then redeploy |
+| Sign-in card says "My Application" | Clerk application name never set | Rename it in the Clerk dashboard — it also appears in Clerk's emails |
 | Provider returns `401` | Key/provider mismatch | Groq keys start with `gsk_`, xAI keys with `xai-`; check for stray quotes or spaces |
 | First request takes ~30s | Render free-tier cold start | Expected; upgrade the plan to avoid it |
 
@@ -184,8 +188,9 @@ something. A failed request here is almost always CORS — the backend logs
 
 - No secrets are committed. `.env*` files are gitignored; `frontend/env.example`
   and `backend/env.example` document the shape only.
-- `JWT_SECRET` should be set via `generateValue: true` in the blueprint or
-  entered in the dashboard — never in the repo.
+- `CLERK_SECRET_KEY` is entered in each host's dashboard (`sync: false` in the
+  blueprint), never committed. The API stores no passwords at all — Clerk holds
+  credentials, and the backend only ever verifies a signed session token.
 - Project routes derive the user id from the **verified token**, never from the
   request body or query string.
 - `vercel.json` sets `X-Content-Type-Options`, `X-Frame-Options`, and

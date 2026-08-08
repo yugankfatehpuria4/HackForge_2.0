@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { authFetch } from '@/lib/auth-client';
+import { useApi } from '@/lib/use-api';
 
 // Dynamically import Monaco Editor to avoid SSR issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -32,6 +32,7 @@ interface CodeOutputProps {
 }
 
 export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId }: CodeOutputProps) {
+  const { apiFetch } = useApi();
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(!!projectId);
@@ -117,7 +118,7 @@ export function CodeOutput({ code, isGenerating, prompt, projectTitle, projectId
 
     try {
       // userId is no longer sent — the backend derives it from the auth token.
-      const response = await authFetch('/api/projects', {
+      const response = await apiFetch('/api/projects', {
         method: 'POST',
         // framework and tags are deliberately omitted: the backend derives them
         // from the prompt and the generated code. Sending 'react' here overrode

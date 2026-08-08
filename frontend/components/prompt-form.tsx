@@ -11,7 +11,7 @@ import { Wand2, Loader2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { API_URL, apiUrl } from '@/lib/api';
-import { authFetch } from '@/lib/auth-client';
+import { useApi } from '@/lib/use-api';
 
 interface PromptFormProps {
   onGenerate: (code: string, prompt: string, projectTitle: string, projectId?: string) => void;
@@ -37,6 +37,7 @@ const promptSuggestions = [
 ];
 
 export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialPrompt = '' }: PromptFormProps) {
+  const { apiFetch } = useApi();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [projectTitle, setProjectTitle] = useState('');
   const [techStack, setTechStack] = useState('fullstack');
@@ -80,11 +81,11 @@ export function PromptForm({ onGenerate, isGenerating, setIsGenerating, initialP
         throw reachError;
       }
 
-      // authFetch attaches the bearer token, which is what lets the backend
+      // apiFetch attaches the Clerk session token, which is what lets the backend
       // auto-save the result to a signed-in user's history. A plain fetch here
       // meant generations were never saved, even when signed in. userId is no
       // longer sent — the server takes identity from the token.
-      const response = await authFetch('/api/generate', {
+      const response = await apiFetch('/api/generate', {
         method: 'POST',
         body: JSON.stringify({
           prompt: `${prompt}\n\nTech Stack: ${techStack}`,
