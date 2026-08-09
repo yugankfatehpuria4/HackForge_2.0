@@ -21,8 +21,10 @@ services:
     healthCheckPath: /
     autoDeploy: true
     envVars:
+      # Must match "engines" in the package.json files (24.x). A mismatch
+      # fails npm's engine check during install.
       - key: NODE_VERSION
-        value: "20"
+        value: "24"
       - key: NODE_ENV
         value: production
       # Read at build time and baked into the client bundle.
@@ -52,8 +54,10 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      # Must match "engines" in the package.json files (24.x). A mismatch
+      # fails npm's engine check during install.
       - key: NODE_VERSION
-        value: "20"
+        value: "24"
       - key: NODE_ENV
         value: production
       # Render sets PORT itself; server.js already reads process.env.PORT.

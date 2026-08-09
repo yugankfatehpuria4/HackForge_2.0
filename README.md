@@ -10,7 +10,7 @@ MongoDB persistence, and Groq LLM inference — built to be deployed, not just d
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-24.x-339933?logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
 ![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-F55036)
 ![Tests](https://img.shields.io/badge/tests-22%20passing-brightgreen)
@@ -155,7 +155,7 @@ for the same reason.
 
 ### Prerequisites
 
-- Node.js 18.18+
+- Node.js 24.x (pinned in `engines`; Render and Vercel are set to match)
 - A Groq API key — [console.groq.com/keys](https://console.groq.com/keys) *(required to generate code)*
 - A Clerk application — [dashboard.clerk.com](https://dashboard.clerk.com) *(required to sign in)*
 - MongoDB and Redis *(both optional — the app runs without them)*
