@@ -83,19 +83,6 @@ start:  cd backend && npm start`}</pre>
         </section>
 
         <section className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4">Docker</h2>
-          <div className="code-block">
-            <pre className="text-sm text-gray-200 whitespace-pre-wrap">{`# frontend
-docker build -t hackforge-web .
-docker run -p 3000:3000 hackforge-web
-
-# backend
-docker build -t hackforge-api ./backend
-docker run -p 10000:10000 --env-file backend/.env hackforge-api`}</pre>
-          </div>
-        </section>
-
-        <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Health checks</h2>
           <ul className="text-gray-300 space-y-2 list-disc list-inside">
             <li>Frontend: <code className="text-primary">/</code></li>
